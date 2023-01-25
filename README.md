@@ -1,4 +1,4 @@
 # ble-app
 Stream your BLE data to the DCD hub!
 
-My first change ...
+Note: active pages (as in: visible on the web) are in docs.
