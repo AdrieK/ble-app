@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Web Bluetooth Accelerometer Plotter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.js"></script>
+  <script src="https://unpkg.com/p5ble@0.0.5/dist/p5.ble.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js"></script>
+  <!-- <script src="smooth-plotter.js"></script> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" />
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
+
+</head>
+
+<body>
+
+  <h1>breath registration</h1>
+
+  <a download="info.txt" id="downloadlink" style="display: none">Download (right click for save-as dialog) </a>
+
+  <div id="div_g" style="width:150vh; height:40vh;"></div>
+  
+  <script>
+
+    const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    //const serviceUuid = "180f0000-0000-0000-0000-000000000000";
+    let myCharacteristic;
+    let myValue = 0;
+    let myBLE;
+    var data = [];
+    var points = [];
+    var g;
+    var dataPoints = 100;
+	var mi = 1024;
+	var ma = -1;
+	
+    //var plotFlag = true;
+
+    var connectButton,testButton, saveButton;
+	
+	var count=0;
+    //Graphing
+    $(document).ready(function () {
+      //var data = [];
+      var t = new Date();
+      for (var i = dataPoints; i >= 0; i--) {
+        var x = new Date(t.getTime() - i * 1000);
+        data.push([x, NaN, NaN, NaN]);
+      }
+
+      g = new Dygraph(document.getElementById("div_g"), data,
+        {
+          //color: 'red',
+          strokeWidth: 2, // lineWidth
+          //rollPeriod: 10,
+          drawPoints: true,
+          //showRoller: true,
+          //valueRange: [475, 525],
+          labels: ['Time', 'X', 'Y', 'Z'],
+          colors: ['#3B3B98', '#ff5e57', '#1dd1a1'],
+          fillGraph: false, // fill the area below the graph
+          pointSize: 0, // points
+          stepPlot: false,
+          //ylabel: "X, Y, Z"
+          xlabel: "time",
+          ylabel: "band value"
+          //pixelsPerLabel: 10,
+        });
+    });
+
+    function plot(ax, ay, az) {
+      // if (plotFlag === true){
+      //   g.updateOptions({'file': []});
+      //   var t = new Date();
+      //   for (var i = dataPoints; i >= 0; i--) {
+      //     var x = new Date(t.getTime() - i * 1000);
+      //     data.push([x, NaN, NaN, NaN]);
+      //   }
+      //   g.updateOptions({'file': data});
+      //   plotFlag = false;
+      // }
+      //My test
+      var d = new Date();  // current time
+      var x = ax;
+      var y = ay;
+      var z = az;
+      data.shift();
+      // if (dataPoints>0){
+      //   dataPoints-=1;
+      //   data.shift();
+      //   data.push([d, x, y, z]);
+      // }
+      // else{
+      //   data.push([d, x, y, z]);
+      // }
+      data.push([d, x, y, z]);
+	  points.push(x);
+      g.updateOptions({ 'file': data });
+
+    }
+
+
+    // Bluetooth
+    function setup() {
+      // Create a p5ble class
+      myBLE = new p5ble();
+
+      // Create a 'Connect' button
+      connectButton = createButton('Connect')
+      connectButton.mousePressed(connectToBle);
+
+      testButton = createButton('Test');
+	  testButton.mousePressed(testPressed);
+
+	  saveButton = createButton('Save');
+      saveButton.mousePressed(saveData);
+	  saveButton.hide();
+
+      createCanvas(100, 80);
+      textSize(20);
+      textAlign(CENTER, CENTER);
+		
+    }
+
+
+    function saveData() {
+      // Connect to a device by passing the service UUID
+      console.log('save data');
+	  console.log(points);
+	  var d = new Blob([points], {type: 'text/plain'});
+	  console.log(d);
+      textFile = window.URL.createObjectURL(d);
+	  console.log(textFile);
+	  
+	  var link = document.getElementById('downloadlink');
+      link.href = textFile;
+      link.style.display = 'block';
+
+   }
+	
+	function onDisconnected() {
+      console.log('Device got disconnected.');
+      isConnected = false;
+    }
+	
+	function testPressed() {
+      console.log('test pressed');
+	  // timeStamp = new Date.now();
+      // console.log('T:', Date.now());
+	  const timestamp = new Date().getTime();
+	  saveButton.show();
+	  //testButton.hide();
+	  var i = parseInt((Math.random() * 10), 10) + 440;
+	  if (i<mi) mi = i-5;
+	  if (i>ma) ma = i+5;
+      console.log('T:', timestamp, 'i', i);
+	  plot(i, min, max);
+	}
+
+    function connectToBle() {
+      // Connect to a device by passing the service UUID
+      console.log('connect to BLE');
+      myBLE.connect(serviceUuid, gotCharacteristics);
+	  connectButton.hide(); 
+	  console.log('finished');
+    }
+
+    // A function that will be called once got characteristics
+    function gotCharacteristics(error, characteristics) {
+	  console.log('gotCharacteristics');
+
+      if (error) console.log('error: ', error);
+      console.log('characteristics: ', characteristics);
+      myCharacteristic = characteristics[0];
+      // Read the value of the first characteristic
+      //myBLE.read(myCharacteristic, 'string', gotValue);
+      myBLE.read(myCharacteristic, 'uint16', gotValue);
+      //plot(myCharacteristic);
+	  
+	  myBLE.onDisconnected(onDisconnected)
+    }
+
+    // A function that will be called once got values
+    function gotValue(error, value) {
+      //saveButton.show();
+      if (error) console.log('error: ', error);
+	  // swap the bytes (little endian ->> big endian)
+	  myValue = (value & 0xFF) * 256 + (value >>> 8);
+      //console.log('T:', Date.now(), 'value: ', value);
+      console.log('T:', Date.now(), 'value: ', myValue);
+
+      plot(myValue, myValue, myValue);
+
+      if (myBLE.isConnected()) {
+        myBLE.read(myCharacteristic, 'uint16', gotValue);
+	  }
+
+    }
+
+    function draw() {
+      background(250);
+      text(myValue, 50, 40);
+    }
+	
+	//****
+	
+	makeTextFile = function (text) {
+	  console.info('function(text)');
+      var data = new Blob([text], {type: 'text/plain'});
+
+      // If we are replacing a previously generated file we need to
+      // manually revoke the object URL to avoid memory leaks.
+      if (textFile !== null) {
+        window.URL.revokeObjectURL(textFile);
+      }
+
+      textFile = window.URL.createObjectURL(data);
+
+      return textFile;
+  };
+
+	
+	//****
+	
+	
+  </script>
+  
+</body>
+
+</html>

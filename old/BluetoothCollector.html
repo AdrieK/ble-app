@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Web Bluetooth Dataplotter</title>
+  <!-- See https://github.com/processing/p5.js -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+  
+  <!-- See https://unpkg.com/browse/p5ble@0.0.7/README.md -->
+  <script src="https://unpkg.com/p5ble@0.0.7/dist/p5.ble.js"></script>
+
+  <!-- Jquery was only used for the $(document).ready function, that seems overkill -->
+  <!-- See https://releases.jquery.com/ , https://www.w3schools.com/jquery/jquery_get_started.asp -->
+  <!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script-->
+  
+  <!-- See https://dygraphs.com/download.html , https://www.cdnpkg.com/dygraph -->
+  <!--script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js"></script-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" />
+  
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
+
+  <script>
+    // Set title of page, if given as parameter
+    const queryString = window.location.search;
+	console.log(queryString);
+	const urlParams = new URLSearchParams(queryString);
+	const title = urlParams.get('title');
+	console.log('title', title);
+	if (queryString) {
+		document.title = queryString;
+	}
+	if (title) {
+		document.title = title;
+	} else {
+		document.title = "Bluetooth Dataplotter";
+	}
+  </script>
+</head>
+
+<body>
+
+ <h1 id="hd1">Bluetooth data collector (stable version)</h1>
+ <p>
+  <A href="breathbandplotter.html">Switch to the OLD version (first, original version)</A><br />
+  <A href="BluetoothCollector.html">Switch to current recommended version</A><br />
+  <A href="BluetoothCollectorTest.html">Switch to the TEST version (New, under development, may be unstable)</A>
+</p>
+<script>
+ var head = document.getElementById("hd1");
+ head.innerHTML=document.getElementsByTagName("title")[0].innerHTML;;
+ </script> 
+
+  <!-- the table is inteded to structure the page, but referencing the buttons remains a challenge till now -->
+ <table border="1">
+  <tr><td colspan="4">
+   <div id="div_g" style="width:80vw; height:40vh;"></div>
+  </td></tr>
+
+  <tr><td>
+    &nbsp;<button type= "button" id="connect_button" onclick="connectToBle()" >connect</button>
+  </td><td>
+    &nbsp;<button type= "button" id="save_button" onclick="saveData()" disabled>get ready to save</button>
+  </td><td>
+    &nbsp;<button type= "button" id="reset_button" onclick="resetFunction()">reset (clear data)</button>	
+  </td><td>
+    &nbsp;<button type= "button" id="test_button" onclick="testPressed()">toggle debug</button>
+  </td></tr>
+  <tr><td id="valueID">&nbsp;</td><td colspan="3">
+   &nbsp;<a download="bluetoothData.csv" id="downloadlink" style="visibility:hidden">Download (right click for save-as dialog)</a>
+  </td></tr>
+ </table>
+
+  <script src="js/buttons.js"></script>
+
+  <script>
+    // original source: https://itpnyu.github.io/p5ble-website/docs/getstarted
+    const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    // const serviceUuid = "";
+    let myCharacteristic;
+    let myValue = 0;
+    let myBLE;
+	// data stores the last captured value, 
+	// points stores the same data, but in sets of 4 points (original IMU data)
+    var data = [];
+    var points = [];
+    var g;
+    var dataPoints = 100;
+	var mi = 1024;
+	var ma = -1;
+	var timeStarted;	
+	var count=0;
+	var debug = false;
+	// Reference values used in the sensor
+	var Vcc = 3.31;
+	var Vref = 2.52;
+	var Rref = 1000;
+	let Rdut = -1;
+
+	<!-- function listBLE() { -->
+		<!-- navigator.bluetooth.requestDevice({ -->
+			<!-- acceptAllDevices: true, -->
+			<!-- optionalServices: ['battery_service'] // Required to access service later. -->
+		<!-- }) -->
+		<!-- .then( -->
+			<!-- device => {  -->
+			<!-- console.log(device); -->
+			<!-- return device.gatt.connect() -->
+
+			<!-- /* … */ } -->
+		<!-- ) -->
+		<!-- .catch( -->
+			<!-- error => { console.error(error); } -->
+		<!-- ); -->
+	<!-- } -->
+
+
+    //Jquery
+	/*
+    $(document).ready(function () {
+	  console.log('document ready (jquery)');
+      var t = new Date();
+	  // This is to get some timeson the (otherwise empty) x-axis
+      for (var i = dataPoints; i >= 0; i--) {
+        var x = new Date(t.getTime() - i * 1000);
+        data.push([x, NaN, NaN, NaN]);
+      }
+
+      g = new Dygraph(document.getElementById("div_g"), data,
+        {
+          strokeWidth: 2, // lineWidth
+          drawPoints: true,
+          labels: ['Time', 'X', 'Y', 'Z'],
+          colors: ['#3B3B98', '#ff5e57', '#1dd1a1'],
+          fillGraph: false, // fill the area below the graph
+          pointSize: 0, // points
+          stepPlot: false,
+          xlabel: "time",
+          ylabel: "value"
+        });
+    });
+    */
+	
+    function plot(ax, ay, az) {
+      //Everything is set up for 3 values (accelerometer), 
+	  //keep those for future extensions (or adapt Dygraph config also)
+      var d = new Date();  // current time
+      var x = ax;
+      var y = ay;
+      var z = az;
+      data.shift(); // remove the oldest point
+      data.push([d, x, y, z]); // add the newest
+      //data.push([d, x]);
+	  //points.push(Date.now() - timeStarted + ','+ x+'\n');
+	  points.push(Date.now() + ','+ x+'\n');
+      g.updateOptions({ 'file': data });
+	}
+
+	// Who calls setup (p5.js)? When?
+    function setup() {
+		console.log('setup');
+		// Create a p5ble class
+		myBLE = new p5ble();
+	  
+		// A little grey square to plot the latest data
+		dataCanvas = createCanvas(250, 30);
+		dataCanvas.parent("valueID");
+		textSize(16);
+		textAlign(CENTER, CENTER);
+    }
+
+	// Automattically called if connection is lost.
+	function onDisconnected() {
+		console.log('connection lost');
+		isConnected = false;
+		connectButton.disabled = false;	  
+    }
+	
+    function connectToBle() {
+		// Connect to a device by passing the service UUID
+		// Runs in the background, will call gotCharacteristics is connected
+		console.log('connect to BLE');
+		myBLE.connect(serviceUuid, gotCharacteristics);
+		connectButton.disabled = true;
+		saveButton.disabled = false;
+		console.log('connectoBLE finished');
+    }
+
+    // A function that will be called once got characteristics
+    function gotCharacteristics(error, characteristics) {
+	  console.log('gotCharacteristics');
+      if (error) console.log('error: ', error);
+      console.log('characteristics: ', characteristics);
+      myCharacteristic = characteristics[0];
+      // Read the incoming value(s) on the first characteristic, attach to callback function gotValue
+      // myBLE.read(myCharacteristic, 'string', gotValue); // to read a string
+      myBLE.read(myCharacteristic, 'uint16', gotValue);	  
+	  myBLE.onDisconnected(onDisconnected);
+	  timeStarted = Date.now();
+	  console.log('gotCharacteristics finished');
+    }
+
+    // A function that will be called once got values from BLE
+    function gotValue(error, value) {
+		if (error) console.log('error: ', error);
+
+		// swap the bytes (little endian ->> big endian)
+		myValue = ((value & 0xFF) << 8) | (value >> 8);
+
+		Vout = Vcc*(myValue/10)/1023; // Value is multiplied by 10 to transfer one decimal.
+		Rdut = Vout/(Vref-Vout)*Rref;
+		//console.log('Vout:', Vout, 'Rdut:', Rdut);
+
+		//Keep the (unused) extra parameters (NaN) for future extensions
+		plot(Rdut, NaN, NaN);
+
+		if (debug) {
+			console.log('T:', Date.now() - timeStarted, 'value:', myValue, 'Rdut:', Rdut);
+		};
+		
+		if (myBLE.isConnected()) {
+			myBLE.read(myCharacteristic, 'uint16', gotValue);
+		} else {
+			console.log('not connected');
+		}
+    }
+
+    function draw() {
+		// console.log('draw');
+		// draw is called on screen refresh
+		// background clears the canvas, 
+		// texts puts on the latest value and number of points collected
+		background(250);
+		text(Math.round(Rdut * 10) / 10, 35, 16);
+		text(points.length, 85, 16);
+		text('points', 135, 16);
+    }
+	
+
+  </script>
+ 
+<!-- p id = "demo">
+<script>
+const el = document.getElementById("demo");
+let x = el.clientWidth;
+let w = window.innerWidth;
+let h = window.innerHeight;
+console.log("width", w);
+document.getElementById("demo").innerHTML = "Width: " + w + "<br>Height: " + h;
+</script>
+</p -->
+
+	<script> 
+     // mimic the 'onready' function (avoid jquery)  
+   	  console.log('document ready (plane JS)');
+      var t = new Date();
+	  // This is to get some timeson the (otherwise empty) x-axis
+      for (var i = dataPoints; i >= 0; i--) {
+        var x = new Date(t.getTime() - i * 1000);
+        data.push([x, NaN, NaN, NaN]);
+      }
+
+      g = new Dygraph(document.getElementById("div_g"), data,
+        {
+          strokeWidth: 2, // lineWidth
+          drawPoints: true,
+          labels: ['Time', 'X', 'Y', 'Z'],
+          colors: ['#3B3B98', '#ff5e57', '#1dd1a1'],
+          fillGraph: false, // fill the area below the graph
+          pointSize: 0, // points
+          stepPlot: false,
+          xlabel: "time",
+          ylabel: "value"
+        });
+	</script>
+</body>
+</html>

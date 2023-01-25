@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Web Bluetooth Dataplotter</title>
+  <!-- See https://github.com/processing/p5.js -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+  
+  <!-- See https://unpkg.com/browse/p5ble@0.0.7/README.md -->
+  <script src="https://unpkg.com/p5ble@0.0.7/dist/p5.ble.js"></script>
+
+  <!-- Jquery was only used for the $(document).ready function, that seems overkill -->
+  <!-- See https://releases.jquery.com/ , https://www.w3schools.com/jquery/jquery_get_started.asp -->
+  <!--script src="https://code.jquery.com/jquery-3.6.0.min.js"></script-->
+  
+  <!-- See https://dygraphs.com/download.html , https://www.cdnpkg.com/dygraph -->
+  <!--script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js"></script-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" />
+  
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
+
+  <script>
+    // Set title of page, if given as parameter
+    const queryString = window.location.search;
+	console.log(queryString);
+	const urlParams = new URLSearchParams(queryString);
+	const title = urlParams.get('title');
+	console.log('title', title);
+	if (queryString) {
+		document.title = queryString;
+	}
+	if (title) {
+		document.title = title;
+	} else {
+		document.title = "Bluetooth Dataplotter";
+	}
+  </script>
+</head>
+
+<body>
+
+ <h1 id="hd1">Bluetooth data collector (testversion)</h1>
+ <p>
+  <A href="breathbandplotter.html">Switch to the OLD version (first, original version)</A><br />
+  <A href="BluetoothCollector.html">Switch to current recommended version</A><br />
+  <A href="BluetoothCollectorTest.html">Switch to the TEST version (New, under development, may be unstable)</A>
+</p>
+<script>
+ var head = document.getElementById("hd1");
+ head.innerHTML=document.getElementsByTagName("title")[0].innerHTML;;
+ </script> 
+
+  <!-- the table is inteded to structure the page, but referencing the buttons remains a challenge till now -->
+ <table border="1">
+  <tr><td colspan="4">
+   <div id="div_g" style="width:80vw; height:40vh;"></div>
+  </td></tr>
+
+  <tr><td>
+    &nbsp;<button type= "button" id="connect_button" onclick="connectToBle()" >connect Arduino</button>
+    &nbsp;<button type= "button" id="list_button" onclick="listBLE()" disabled>list all</button>
+  </td><td>
+    &nbsp;<button type= "button" id="save_button" onclick="saveData()" disabled>get ready to save</button>
+  </td><td>
+    &nbsp;<button type= "button" id="reset_button" onclick="resetFunction()">reset (clear data)</button>	
+  </td><td>
+    &nbsp;<button type= "button" id="test_button" onclick="testPressed()">toggle debug</button>
+  </td></tr>
+  <tr><td id="valueID">&nbsp;</td><td colspan="3">
+   &nbsp;<a download="bluetoothData.csv" id="downloadlink" style="visibility:hidden">Download (right click for save-as dialog)</a>
+  </td></tr>
+  <tr><td colspan="4">
+	<input type="radio" id="0s" name="sample_time" onclick="sampleClick(0)" checked>
+	<label for="1s">max speed</label>
+	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(0.2)">
+	<label for="1s">0.2s</label>
+	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(0.5)">
+	<label for="1s">0.5s</label>
+	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(1)">
+	<label for="1s">1s</label>
+	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(2)">
+	<label for="1s">2s</label>
+	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(5)">
+	<label for="1s">5s</label>
+	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(10)">
+	<label for="10s">10s</label>
+	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(20)">
+	<label for="10s">20s</label>
+	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
+	<label for="60s">1 min</label>
+	<input type="checkbox" id="avg" name="average" onclick="averageClick()">
+	<label for="a">average</label>
+  </td></tr>
+  </table>
+
+   <script src="js/buttons.js"></script>
+
+  <script>
+    // original source: https://itpnyu.github.io/p5ble-website/docs/getstarted
+    const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    // const serviceUuid = "";
+    let myCharacteristic;
+    let myValue = 0;
+    let myBLE;
+	// data stores the last captured value, 
+	// points stores the same data, but in sets of 4 points (original IMU data)
+	var serviceList = [];
+    var data = [];
+    var points = [];
+    var g;
+    var dataPoints = 100;
+	var mi = 1024;
+	var ma = -1;
+	var timeStarted;	
+	var count=0;
+	var debug = false;
+	
+	// Sampling
+	var averageSamples = false;
+	var numSamples = 0;
+	var sumSamples = 0;
+	var sampleTime = 0;
+	var nextSampleTime = 0;
+
+	// Reference values used in the sensor
+	//var Vcc = 3.31;
+	var Vref = 3.3;
+	var Rref = 1000;
+	let Rdut = -1;
+	
+	var notifyChar;
+	var enc = new TextEncoder(); // need arraybuffer to send data 
+	var dec = new TextDecoder(); // need arraybuffer to send data 
+	var incoming = '';
+
+	function handleBleEvent(event) {
+		console.log('handle event');
+		let val = event.target.value.getUint8(0);
+		console.log(val);
+	}
+
+	// The async way...
+	// https://googlechrome.github.io/samples/web-bluetooth/read-characteristic-value-changed-async-await.html	
+	var bluetoothDevice;
+	var incomingCharacteristic;
+
+	async function listBLE() {
+		try {
+			if (!bluetoothDevice) {
+				await requestDevice();
+			}
+			await connectDeviceAndCacheCharacteristics();
+			console.log('Reading incoming ...');
+			await incomingCharacteristic.readValue();
+		} catch(error) {
+			log('Argh! ' + error);
+		}
+	}
+	
+	async function requestDevice() {
+		console.log('Requesting any Bluetooth Device...');
+		bluetoothDevice = await navigator.bluetooth.requestDevice({
+			// filters: [...] <- Prefer filters to save energy & show relevant devices.
+			acceptAllDevices: false,
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"} ],
+			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e'],
+		});
+		bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+	}
+
+	async function connectDeviceAndCacheCharacteristics() {
+		if (bluetoothDevice.gatt.connected && incomingCharacteristic) {
+			return;
+		}
+
+		console.log('Connecting to GATT Server...');
+		const server = await bluetoothDevice.gatt.connect();
+
+		console.log('Getting Service...');
+		const service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
+
+		console.log('Getting Incoming Characteristic...');
+		incomingCharacteristic = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
+
+		incomingCharacteristic.addEventListener('characteristicvaluechanged', handleIncoming);
+		await incomingCharacteristic.startNotifications(); // otherwise nothing happens...
+
+		console.log('Getting outgoing Characteristic...');
+		outgoingCharacteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
+		message = enc.encode("test");
+		outgoingCharacteristic.writeValue(message);
+
+		//document.querySelector('#startNotifications').disabled = false;
+		//document.querySelector('#stopNotifications').disabled = true;
+	}
+
+	/* This function will be called when `readValue` resolves and
+	* characteristic value changes since `characteristicvaluechanged` event
+	* listener has been added. */
+	function handleIncoming(event) {
+		//t1 = performance.now();
+		//console.log('> event handler', event.target.value);
+		//var string = new TextDecoder().decode(event.target.value);
+		var string = dec.decode(event.target.value);
+		// console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+		incoming += string
+		var cnt
+		if (incoming.indexOf('\r\n')>0) {
+			p = incoming.split('\r\n')[0];
+			console.log('>> p: ', p);
+			q = p.substr(1, p.length-2);
+			console.log('>> q: ', q);
+			Ax = parseFloat(q.split(' ')[3]);
+			Ay = parseFloat(q.split(' ')[4]);
+			Az = parseFloat(q.split(' ')[5]);
+			pos=incoming.indexOf('\r\n')+2;
+			len=incoming.lenght-pos-2;
+			incoming=incoming.substr(pos,len);
+			console.log('>> rest: ', incoming);
+		    message = enc.encode(Ax+Ay+Az);
+		    outgoingCharacteristic.writeValue(message);
+		    //console.log('>> parse: ', cnt);
+			plot(Ax, Ay, Az);
+		}
+	
+		//var parts = string.split('(')[1];
+		//var part2 = incoming.split('\r\n');
+		//var cnt = parseInt(parts[2]);
+		//console.log('>> parse: ', cnt);
+		
+		// return the favour
+		//message = enc.encode(cnt);
+		//outgoingCharacteristic.writeValue(message);
+		//console.log(performance.now()-t1);
+	}
+	
+	async function onDisconnected() {
+		console.log('> Bluetooth Device disconnected');
+		try {
+			await connectDeviceAndCacheCharacteristics()
+		} catch(error) {
+			log('Argh! ' + error);
+		}
+	}
+
+/// End of async
+
+
+	function OLDlistBLE() {
+		console.log('listBLE');
+		navigator.bluetooth.requestDevice({
+			acceptAllDevices: false,
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"} ],
+			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e'],
+			    //'00001800-0000-1000-8000-00805f9b34fb', 
+				//'0000180a-0000-1000-8000-00805f9b34fb',
+				//'6e400001-b5a3-f393-e0a9-e50e24dcca9e'], 
+			    //"19b10000-e8f2-537e-4f6c-d104768a1214",
+				//'00001800-0000-1000-8000-00805f9b34fb', 
+				//'battery_service'] // Required to access service later.
+		}).then(device => { 
+		myBLE = device;
+			console.log('device:', device.name);
+			console.log('connect to GATT server...');
+			return device.gatt.connect();
+			/* … */ 
+		}).then(server => {
+			console.log('getting services...')
+			//print(server.getPrimaryService("19b10000-e8f2-537e-4f6c-d104768a1214"));
+			//server.getPrimaryServices("51ad213f-e568-4e35-84e4-67af89c79ef0");
+			//return server.getPrimaryServices("adaf0001-4369-7263-7569-74507974686e");
+			return server.getPrimaryServices("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+		}).then(services => {
+			console.log('getting characteristics...')
+			let queue = Promise.resolve();
+			services.forEach(service => {
+				serviceList.push(service.uuid);
+				queue = queue.then(_ => service.getCharacteristics().then(characteristics => {
+				console.log('> Service: ', service.uuid);
+				console.log('characteristics:', characteristics);
+				// bluefruit_connect_uart.py (adafruit)
+				// Service 51ad213f-e568-4e35-84e4-67af89c79ef0
+				// Characteristic e077bdec-f18b-4944-9e9e-8b3a815162b4 // COUNT = xxx
+				characteristics.forEach(characteristic => {
+				console.log('>>Characteristic: ', characteristic.uuid, ' ', getSupportedProperties(characteristic));
+					if (characteristic.uuid == 'e077bdec-f18b-4944-9e9e-8b3a815162b4') {
+						characteristic.addEventListener('characteristicvaluechanged', handleBleEvent);
+						console.log('\nlistening to', characteristic.uuid);
+					}
+					
+					if (characteristic.uuid == "6e400003-b5a3-f393-e0a9-e50e24dcca9e") {
+						notifyChar = characteristic;
+						console.log(notifyChar);
+						console.log(handleBleEvent);
+						notifyChar.addEventListener('characteristicvaluechanged', handleBleEvent);
+						console.log('\nlistening to', characteristic.uuid);
+					}
+				});
+				console.log('end of list');
+			}));
+		});
+		console.log('*** serviceList', serviceList);
+		return queue;
+		})
+		.catch(
+			error => { console.error(error); }
+		);
+	}
+
+	function plot(ax, ay, az) {
+      //Everything is set up for 3 values (accelerometer), 
+	  //keep those for future extensions (or adapt Dygraph config also)
+      var d = new Date();  // current time
+      var x = ax;
+      var y = ay;
+      var z = az;
+      data.shift(); // remove the oldest point
+      data.push([d, x, y, z]); // add the newest
+      //data.push([d, x]);
+	  //points.push(Date.now() - timeStarted + ','+ x+'\n');
+	  points.push(Date.now() + ','+ x+'\n');
+      g.updateOptions({ 'file': data });
+	}
+
+	// Who calls setup (p5.js)? When?
+    function setup() {
+		console.log('setup');
+		// Create a p5ble class
+		myBLE = new p5ble();
+	  
+		// A little grey square to plot the latest data
+		dataCanvas = createCanvas(250, 30);
+		dataCanvas.parent("valueID");
+		textSize(16);
+		textAlign(CENTER, CENTER);
+    }
+
+	// Automattically called if connection is lost.
+	function onDisconnected() {
+		console.log('connection lost');
+		isConnected = false;
+		connectButton.disabled = false;	  
+    }
+	
+    function connectToBle() {
+		// Connect to a device by passing the service UUID
+		// Runs in the background, will call gotCharacteristics when connected
+		console.log('connect to BLE');
+		myBLE.connect(serviceUuid, gotCharacteristics);
+		connectButton.disabled = true;
+		saveButton.disabled = false;
+		console.log('connectoBLE finished', myBLE);
+    }
+
+    // A function that will be called once got characteristics
+    function gotCharacteristics(error, characteristics) {
+	  console.log('gotCharacteristics');
+      if (error) console.log('error: ', error);
+      console.log('characteristics: ', characteristics);
+      myCharacteristic = characteristics[0];
+      // Read the incoming value(s) on the first characteristic, attach to callback function gotValue
+      // myBLE.read(myCharacteristic, 'string', gotValue); // to read a string
+      //myBLE.read(myCharacteristic, 'uint16', gotValue);	  
+      myBLE.read(myCharacteristic, 'uint32', gotValue);	  
+	  myBLE.onDisconnected(onDisconnected);
+	  timeStarted = Date.now();
+	  console.log('gotCharacteristics finished');
+    }
+
+    // A function that will be called once got values from BLE
+    function gotValue(error, value) {
+		if (error) console.log('error: ', error);
+		// swap the bytes (little endian ->> big endian)
+		//myValue = ((value & 0xFF) << 8) | (value >> 8);
+		Rdut = value/100;
+
+		if (debug) {
+			console.log('T:', Date.now() - timeStarted, 'value:', value, 'Rdut:', Rdut);
+		};
+		
+		if (sampleTime>0) {
+			if (averageSamples) {
+				sumSamples = sumSamples + Rdut;
+				numSamples++;
+			}
+
+			if (Date.now() > nextSampleTime) {
+				//console.log("now", Date.now(), nextSampleTime, sumSamples, numSamples, sumSamples/numSamples);
+				nextSampleTime = Date.now() + sampleTime;
+				if (averageSamples) {
+					Rdut = sumSamples/numSamples;
+					sumSamples = 0;
+					numSamples = 0;
+				}
+				plot(Rdut, NaN, NaN);
+			}
+		} else {
+			//Keep the (unused) extra parameters (NaN) for future extensions
+			plot(Rdut, NaN, NaN);
+		}
+
+		if (myBLE.isConnected()) {
+			//myBLE.read(myCharacteristic, 'uint16', gotValue);
+			myBLE.read(myCharacteristic, 'uint32', gotValue);
+			//myBLE.read(myCharacteristic, '`float32', gotValue);
+		} else {
+			console.log('not connected');
+		}
+    }
+
+    function draw() {
+		// console.log('draw');
+		// draw is called on screen refresh
+		// background clears the canvas, 
+		// texts puts on the latest value and number of points collected
+		background(250);
+		text(Math.round(Rdut * 10) / 10, 35, 16);
+		text(points.length, 85, 16);
+		text('points', 135, 16);
+    }
+	
+	function getSupportedProperties(characteristic) {
+		let supportedProperties = [];
+		for (const p in characteristic.properties) {
+			if (characteristic.properties[p] === true) {
+				supportedProperties.push(p.toUpperCase());
+			}
+		}
+		return '[' + supportedProperties.join(', ') + ']';
+	}
+	
+	function sampleClick(s) {
+		if (debug) {
+			console.log('sampleclick' , s);
+		}
+		sampleTime = s*1000; // Date.now is in milliseconds.
+		nextSampleTime = Date.now() + sampleTime;
+	}
+
+	function averageClick() {
+		if (debug) {
+			console.log('averageClick', avgBox.checked);
+		}
+		averageSamples =  avgBox.checked;
+	}
+
+  </script>
+ 
+<!-- p id = "demo">
+<script>
+const el = document.getElementById("demo");
+let x = el.clientWidth;
+let w = window.innerWidth;
+let h = window.innerHeight;
+console.log("width", w);
+document.getElementById("demo").innerHTML = "Width: " + w + "<br>Height: " + h;
+</script>
+</p -->
+
+	<script> 
+     // mimic the 'onready' function (avoid jquery)  
+   	  console.log('document ready (plane JS)');
+      var t = new Date();
+	  // This is to get some timeson the (otherwise empty) x-axis
+      for (var i = dataPoints; i >= 0; i--) {
+        var x = new Date(t.getTime() - i * 1000);
+        data.push([x, NaN, NaN, NaN]);
+      }
+
+      g = new Dygraph(document.getElementById("div_g"), data,
+        {
+          strokeWidth: 2, // lineWidth
+          drawPoints: true,
+          labels: ['Time', 'X', 'Y', 'Z'],
+          colors: ['#3B3B98', '#ff5e57', '#1dd1a1'],
+          fillGraph: false, // fill the area below the graph
+          pointSize: 0, // points
+          stepPlot: false,
+          xlabel: "time",
+          ylabel: "value"
+        });
+	</script>
+</body>
+</html>
