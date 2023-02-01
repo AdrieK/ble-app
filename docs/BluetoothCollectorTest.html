@@ -20,7 +20,7 @@
   
   <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
 
-  <script>
+  <!--script>
     // Set title of page, if given as parameter
     const queryString = window.location.search;
 	console.log(queryString);
@@ -35,7 +35,7 @@
 	} else {
 		document.title = "Bluetooth Dataplotter";
 	}
-  </script>
+  </script-->
 </head>
 
 <body>
@@ -44,7 +44,7 @@
  <p>
   <A href="breathbandplotter.html">Switch to the OLD version (first, original version)</A><br />
   <A href="BluetoothCollector.html">Switch to current recommended version</A><br />
-  <A href="BluetoothCollectorTest.html">Switch to the TEST version (New, under development, may be unstable)</A>
+  <!--A href="BluetoothCollectorTest.html">Switch to the TEST version (New, under development, may be unstable)</A-->
 </p>
 <script>
  var head = document.getElementById("hd1");
@@ -85,7 +85,7 @@
 	<label for="1s">5s</label>
 	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(10)">
 	<label for="10s">10s</label>
-	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(20)">
+	<input type="radio" id="20s" name="sample_time" onclick="sampleClick(20)">
 	<label for="10s">20s</label>
 	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
 	<label for="60s">1 min</label>
@@ -94,6 +94,13 @@
   </td></tr>
   </table>
 
+	<script>
+		radiobtn = document.getElementById("20s");
+		radiobtn.checked = true;
+		avgbtn = document.getElementById("avg");
+		avgbtn.checked = true;
+	</script>
+	
    <script src="js/buttons.js"></script>
 
   <script>
