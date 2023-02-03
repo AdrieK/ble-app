@@ -381,13 +381,12 @@
 	// called if a sampletime radiobutton is clicked.
 	function sampleClick(s) {
 		if (debug) {
-			console.log('sampleclick' , s, event);
+			console.log('sampleclick' , s);
 		}
 		sampleTime = s*1000; // Date.now is in milliseconds.
 		nextSampleTime = Date.now() + sampleTime;
 		
 		st = s.toString()+"s";
-		console.log("st", st);
 		setCookie("sampleTimeCookie", st);
 	}
 
