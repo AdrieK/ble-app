@@ -66,3 +66,11 @@ function testPressed() {
 	listButton.disabled = false;
 	noLoop();
 }
+
+function debugPressed() {
+    console.log('debug pressed');
+	debug = !debug;
+    const timestamp = new Date().getTime();
+    saveButton.disabled = false;
+    listButton.disabled = false;
+}
