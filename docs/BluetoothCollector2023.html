@@ -39,20 +39,20 @@
   </td></tr>
   <tr><td colspan="4">
 	<input type="radio" id="0s" name="sample_time" onclick="sampleClick(0)" checked>
-	<label for="1s">max speed</label>
-	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(0.2)">
+	<label for="0s">max speed</label>
+	<input type="radio" id="0.2s" name="sample_time" onclick="sampleClick(0.2)">
 	<label for="1s">0.2s</label>
-	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(0.5)">
+	<input type="radio" id="0.5s" name="sample_time" onclick="sampleClick(0.5)">
 	<label for="1s">0.5s</label>
 	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(1)">
 	<label for="1s">1s</label>
-	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(2)">
+	<input type="radio" id="2s" name="sample_time" onclick="sampleClick(2)">
 	<label for="1s">2s</label>
-	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(5)">
+	<input type="radio" id="5s" name="sample_time" onclick="sampleClick(5)">
 	<label for="1s">5s</label>
 	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(10)">
 	<label for="10s">10s</label>
-	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(20)">
+	<input type="radio" id="20s" name="sample_time" onclick="sampleClick(20)">
 	<label for="10s">20s</label>
 	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
 	<label for="60s">1 min</label>
@@ -67,6 +67,21 @@
 
    <script src="js/buttons.js"></script>
 
+  <script>
+    stID = getCookie("sampleTimeCookie");  
+	if ( stID != "" ) {
+		rb = document.getElementById(stID);
+		rb.checked = true;
+		sampleTime = parseInt(stID);		
+	}
+
+    avgc = getCookie("averageCookie");
+	if (avgc == "true") {
+		cb = document.getElementById("avg");
+		cb.checked = true;
+	}
+  </script>
+  
   <script>
     const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
     let myCharacteristic;
@@ -366,10 +381,14 @@
 	// called if a sampletime radiobutton is clicked.
 	function sampleClick(s) {
 		if (debug) {
-			console.log('sampleclick' , s);
+			console.log('sampleclick' , s, event);
 		}
 		sampleTime = s*1000; // Date.now is in milliseconds.
 		nextSampleTime = Date.now() + sampleTime;
+		
+		st = s.toString()+"s";
+		console.log("st", st);
+		setCookie("sampleTimeCookie", st);
 	}
 
 	// called if average tickbox is clicked.
@@ -378,6 +397,7 @@
 			console.log('averageClick', avgBox.checked);
 		}
 		averageSamples =  avgBox.checked;
+		setCookie("averageCookie", avgBox.checked);
 	}
 
   </script>
@@ -395,7 +415,7 @@ document.getElementById("demo").innerHTML = "Width: " + w + "<br>Height: " + h;
 
 	<script> 
      // mimic the 'onready' function (avoid jquery)  
-   	  console.log('document ready (plane JS)');
+   	 // console.log('document ready (plane JS)');
       var t = new Date();
 	  // This is to get some timeson the (otherwise empty) x-axis
       for (var i = dataPoints; i >= 0; i--) {
