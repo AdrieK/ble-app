@@ -179,7 +179,7 @@
 			console.log('Reading incoming ...');
 			await incomingCharacteristic.readValue();
 		} catch(error) {
-			console.log('Argh! ' + error);
+			console.log('Argh! (listBLENew) ' + error);
 		}
 		console.log("end of listBLE");
 		connectButton.disabled = true;
@@ -201,7 +201,7 @@
 			console.log('Reading incoming ...');
 			await incomingCharacteristic.readValue();
 		} catch(error) {
-			console.log('Argh! ' + error);
+			console.log('Argh! (listBLE) ' + error);
 		}
 		console.log("end of listBLE");
 		connectButton.disabled = true;
@@ -436,7 +436,7 @@
 		try {
 			await connectDeviceAndCacheCharacteristics()
 		} catch(error) {
-			console.log('Argh! ' + error);
+			console.log('Argh! (onDisconnect) ' + error);
 		}
 	}
 /// End of async / BLE functions
