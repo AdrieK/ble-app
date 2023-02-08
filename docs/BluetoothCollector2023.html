@@ -70,15 +70,7 @@
 <caption style="text-align: left"><input id="explBox" type="checkbox" name="show explanation" onclick="explanationCLick()">
 Show explanation(uncomplete, work in progress)</caption>
 </thead>
-<tbody  style = "visibility: hidden" id="expl"> 
-<tr><td colspan="4">
-The bluetooth data collector enables to capture data in some predefined formats from some predefined gatt services/characteristics.
-Default two device types/data streams are recognised: A stream of floating point numbers sent using the Arduino BLE class, service uuid xxxxx, characteristic uuid yyyyy and data sent from a circuitpython device using the ble uart service.
-using the two text fields you can set your own device, service and characteristic, but not (yet) the type and amount of data.
-Data is stored in a list of points, together with a timestamp.
-The most recent zzz datapoints are stored in e second list that is used as input for a plot function showing this data.
-There's an option to set the sample-rate for the data to limit the amount of data. Intermediate samples can be ignored, or averaged.
-</td></tr>
+<tbody> 
 <tr>
 	<th align="left">device name</th>
  	<td>CIRCUITPY</td>
@@ -100,6 +92,14 @@ There's an option to set the sample-rate for the data to limit the amount of dat
 	<td>&nbsp;</td>
 	<td><input type="text" id="sChrUUID" name="fname">(your own tx uuid)</td>
 </tr><tr>
+<tr style = "visibility: hidden" id="expl"><td colspan="4">
+	The bluetooth data collector enables to capture data in some predefined formats from some predefined gatt services/characteristics.
+	Default two device types/data streams are recognised: A stream of floating point numbers sent using the Arduino BLE class, service uuid xxxxx, characteristic uuid yyyyy and data sent from a circuitpython device using the ble uart service.
+	using the two text fields you can set your own device, service and characteristic, but not (yet) the type and amount of data.
+	Data is stored in a list of points, together with a timestamp.
+	The most recent zzz datapoints are stored in e second list that is used as input for a plot function showing this data.
+	There's an option to set the sample-rate for the data to limit the amount of data. Intermediate samples can be ignored, or averaged.
+</td></tr>		
 </tbody>
 </table>
 
