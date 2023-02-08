@@ -164,6 +164,7 @@
 	var incomingCharacteristic;
 
 	async function listBLEnew() {
+		console.log("listBLE New");
 		myDeviceName = document.getElementById("myDevice").value;
 		myServiceUUID = document.getElementById("myService").value;
 		myReceiveUUID = document.getElementById("myReceive").value;
@@ -186,7 +187,7 @@
 	}
 	
 	async function listBLE() {
-		myDeviceName = "";
+		myDeviceName = "foobar";
 		myServiceUUID = 0x0
 		myReceiveUUID = document.getElementById("myReceive").value;
 		mySendUUID = document.getElementById("mySend").value;
@@ -208,7 +209,7 @@
 	}
 	
 	async function requestDeviceNew() {
-		console.log('Requesting Bluetooth Device (Circuitpy or Arduino)');
+		console.log('Requesting Bluetooth Device NEW');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
 			acceptAllDevices: tue,
