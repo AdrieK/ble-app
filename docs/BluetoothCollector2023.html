@@ -212,8 +212,8 @@
 		console.log('Requesting Bluetooth Device NEW');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
-			acceptAllDevices: tue,
-			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: myDeviceName} ],
+			acceptAllDevices: true,
+			filters: [ {namePrefix: myDeviceName} ],
 			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
 			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
 			 myServiceUUID,
