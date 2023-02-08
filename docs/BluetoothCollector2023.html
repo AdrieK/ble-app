@@ -291,6 +291,12 @@
 		// *********** experimental
 		console.log("listCharacteristics");
 		listCharacteristics = await service.getCharacteristics();
+		for (c in listCharacteristics) {
+			console.log(c.properties.read);
+			console.log(c.properties.write);
+			console.log(c.properties.notify);
+		}
+		
 		console.log(listCharacteristics);
 		//
 		incomingCharacteristic = await service.getCharacteristic(characteristicName);
