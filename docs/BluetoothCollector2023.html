@@ -300,14 +300,8 @@
 			console.log(element.properties.notify);
 			
 		});
-		for (const c in listCharacteristics) {
-			console.log(c);
-			console.log(c.properties);
-			console.log(c.properties.write);
-			console.log(c.properties.notify);
-		}
+		// ***********
 
-		//
 		incomingCharacteristic = await service.getCharacteristic(characteristicName);
 
 //		console.log('Getting Incoming Characteristic...');
