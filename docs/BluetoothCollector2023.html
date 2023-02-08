@@ -187,11 +187,11 @@
 	}
 	
 	async function listBLE() {
-		myDeviceName = "foobar";
-		myServiceUUID = 0x0
-		myReceiveUUID = document.getElementById("myReceive").value;
-		mySendUUID = document.getElementById("mySend").value;
-		console.log(myDeviceName, myServiceUUID, myReceiveUUID, mySendUUID);
+		//myDeviceName = "foobar";
+		//myServiceUUID = 0x0
+		//myReceiveUUID = document.getElementById("myReceive").value;
+		//mySendUUID = document.getElementById("mySend").value;
+		//console.log(myDeviceName, myServiceUUID, myReceiveUUID, mySendUUID);
 		try {
 			if (!bluetoothDevice) {
 				await requestDevice();
@@ -230,7 +230,6 @@
 			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: myDeviceName} ],
 			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
 			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
-			 myServiceUUID,
 			 0x1809] // NRFsend temperature service - note the 0x and missing '' in a standard service type uuid ...
 		});
 		bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
