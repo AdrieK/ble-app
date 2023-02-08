@@ -71,22 +71,22 @@
 	<th align="left">device name</th>
  	<td>CIRCUITPY</td>
  	<td>Arduino</td>
-	<td><input type="text" id="devName" name="fname">(your own device name)</td>
+	<td><input type="text" id="myDeviceName" value="foobar">(your own device name)</td>
 </tr><tr>
 	<th align="left">service</th>
  	<td>6e400001-b5a3-f393-e0a9-e50e24dcca9e</td>
  	<td>19b10000-e8f2-537e-4f6c-d104768a1214 </td>
-	<td><input type="text" id="srvUUID" name="fname">(your own service uuid)</td>
+	<td><input type="text" id="myServiceUUID" value=" 0x181A">(your own service uuid)</td>
 </tr><tr>
 	<th align="left">characteristic<br />receive</th>
 	<td>6e400003-b5a3-f393-e0a9-e50e24dcca9e</td>
 	<td>19b10002-e8f2-537e-4f6c-d104768a1214</td> 
-	<td><input type="text" id="rChrUUID" name="fname">(your own rx uuid)</td>
+	<td><input type="text" id="myReceiveUUID" value="(0x2A6E">(your own rx uuid)</td>
 </tr><tr>	
 	<th align="left">characteristic<br />transmit</th>
 	<td>6e400002-b5a3-f393-e0a9-e50e24dcca9e<br></td>
 	<td>&nbsp;</td>
-	<td><input type="text" id="sChrUUID" name="fname">(your own tx uuid)</td>
+	<td><input type="text" id="mySendUUID" value="0x2A6F">(your own tx uuid)</td>
 </tr><tr>
 	<caption style="text-align: left"><input id="explBox" type="checkbox" name="show explanation" onclick="explanationCLick()">
 		Show explanation(uncomplete, work in progress)</caption>
@@ -119,17 +119,18 @@
   </script>
   
   <script>
-    const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+	// commented out the (afaik) not used anymore variables
+    //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
     let myCharacteristic;
     let myValue = 0;
 
 	// data stores the last captured value, 
 	// points stores the same data, but in sets of 4 points (original IMU data)
-	var serviceList = [];
+	// var serviceList = [];
     var data = [];
     var points = [];
     var g;
-    var dataPoints = 100;
+    var dataPoints = 100; // 
 	var mi = 1024;
 	var ma = -1;
 	var timeStarted;	
@@ -144,9 +145,6 @@
 	var nextSampleTime = 0;
 
 	// Reference values used in the sensor
-	// var Vcc = 3.31;
-	// var Vref = 3.3;
-	// var Rref = 1000;
 	let Rdut = -1;
 	
 	var notifyChar;
@@ -154,11 +152,11 @@
 	var dec = new TextDecoder(); // need arraybuffer to send data 
 	var incoming = '';
 
-	function handleBleEvent(event) {
-		console.log('handle event');
-		let val = event.target.value.getUint8(0);
-		console.log(val);
-	}
+	// function handleBleEvent(event) {
+	// 	console.log('handle event');
+	// 	let val = event.target.value.getUint8(0);
+	// 	console.log(val);
+	// }
 
 	// The async way...
 	// https://googlechrome.github.io/samples/web-bluetooth/read-characteristic-value-changed-async-await.html	
@@ -187,16 +185,18 @@
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
 			acceptAllDevices: false,
-			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: "foobar"} ],
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: myDeviceName} ],
 			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
 			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
-			0x1809] // NRFsend temperature service - note the 0x and missing '' in a standard service type uuid ...
+			 myService,
+			 0x1809] // NRFsend temperature service - note the 0x and missing '' in a standard service type uuid ...
 		});
 		bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
 	}
 
 	async function connectDeviceAndCacheCharacteristics() {
 		if (bluetoothDevice.gatt.connected && incomingCharacteristic) {
+			console.log('already connected');
 			return;
 		}
 
@@ -206,6 +206,7 @@
 
 		let serviceName = 'unknown';
 		document.getElementById("deviceID").innerHTML = server.device.name;
+
 		if (server.device.name.startsWith("Arduino")) {
 			serviceName = '19b10000-e8f2-537e-4f6c-d104768a1214';
 			characteristicName = '19b10002-e8f2-537e-4f6c-d104768a1214';
@@ -216,6 +217,12 @@
 			characteristicName = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
 		}
 
+		if (server.device.name.startsWith(myDeviceName)) {
+			serviceName = myServiceUUID;
+			characteristicName = myReceiveUUID;
+			RXcharacteristicName = mySendUUID;
+		}
+		
 		console.log('Getting Service...', serviceName);
 		document.getElementById("serviceID").innerHTML = serviceName+"<br>"+characteristicName;
 
@@ -226,6 +233,9 @@
 		
 		if (debug) console.log('Getting Incoming Characteristic...', characteristicName);
 /*		
+		// it should be possible to fill a list of services and characteristics
+		// but ble web is not really cooperative in that.
+		// so, in the future
 		if (characteristicName == 'undefined') {
 			let chars = await service.getCharacteristics();
 			console.log('chars', chars);
@@ -467,7 +477,7 @@ document.getElementById("demo").innerHTML = "Width: " + w + "<br>Height: " + h;
      // mimic the 'onready' function (avoid jquery)  
    	 // console.log('document ready (plane JS)');
       var t = new Date();
-	  // This is to get some timeson the (otherwise empty) x-axis
+	  // This is to get the times on the (otherwise empty) x-axis
       for (var i = dataPoints; i >= 0; i--) {
         var x = new Date(t.getTime() - i * 1000);
         data.push([x, NaN, NaN, NaN]);
