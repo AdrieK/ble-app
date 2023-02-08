@@ -293,7 +293,8 @@
 		listCharacteristics = await service.getCharacteristics();
 		console.log(listCharacteristics);
 
-		for (c in listCharacteristics) {
+		for (const c in listCharacteristics) {
+			console.log(c);
 			console.log(c.properties);
 			console.log(c.properties.write);
 			console.log(c.properties.notify);
