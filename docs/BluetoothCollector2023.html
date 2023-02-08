@@ -288,12 +288,16 @@
 			incomingCharacteristic = await service.getCharacteristic(characteristicName);
 		};
 */
+		// experimentsl
+		listCharacteristics = await service.getCharacteristics();
+		console.log(listCharacteristics);
+		//
 		incomingCharacteristic = await service.getCharacteristic(characteristicName);
 
 //		console.log('Getting Incoming Characteristic...');
 //		incomingCharacteristic = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
 
-		console.log('Incoming Characteristic...', incomingCharacteristic);
+		//console.log('Incoming Characteristic...', incomingCharacteristic);
 		incomingCharacteristic.addEventListener('characteristicvaluechanged', handleIncoming);
 		await incomingCharacteristic.startNotifications(); // otherwise nothing happens...
 		timeStarted = Date.now();
