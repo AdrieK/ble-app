@@ -291,14 +291,11 @@
 		// *********** experimental
 		console.log("listCharacteristics");
 		listCharacteristics = await service.getCharacteristics();
-		console.log(listCharacteristics);
+		//console.log(listCharacteristics);
 
-		listCharacteristics.forEach(element => {
-			console.log(element);
-			console.log(element.properties.read);
-			console.log(element.properties.write);
-			console.log(element.properties.notify);
-			
+		listCharacteristics.forEach(e => {
+			//console.log(element);
+			console.log(e.properties.write, e.properties.read, e.properties.notify);			
 		});
 		// ***********
 
