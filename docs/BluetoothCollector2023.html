@@ -66,10 +66,6 @@
   </table>
 
 <table style="width:80vw; height:40vh;">
-<thead>
-<caption style="text-align: left"><input id="explBox" type="checkbox" name="show explanation" onclick="explanationCLick()">
-Show explanation(uncomplete, work in progress)</caption>
-</thead>
 <tbody> 
 <tr>
 	<th align="left">device name</th>
@@ -92,7 +88,9 @@ Show explanation(uncomplete, work in progress)</caption>
 	<td>&nbsp;</td>
 	<td><input type="text" id="sChrUUID" name="fname">(your own tx uuid)</td>
 </tr><tr>
-<tr style = "visibility: hidden" id="expl"><td colspan="4">
+	<caption style="text-align: left"><input id="explBox" type="checkbox" name="show explanation" onclick="explanationCLick()">
+		Show explanation(uncomplete, work in progress)</caption>
+		<tr style = "visibility: hidden" id="expl"><td colspan="4">
 	The bluetooth data collector enables to capture data in some predefined formats from some predefined gatt services/characteristics.
 	Default two device types/data streams are recognised: A stream of floating point numbers sent using the Arduino BLE class, service uuid xxxxx, characteristic uuid yyyyy and data sent from a circuitpython device using the ble uart service.
 	using the two text fields you can set your own device, service and characteristic, but not (yet) the type and amount of data.
