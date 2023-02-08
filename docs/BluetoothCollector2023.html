@@ -26,7 +26,7 @@
 
   <tr><td>
     &nbsp;<button type= "button" id="connect_button" onclick="listBLE()" >connect</button>
-    &nbsp;<button type= "button" id="list_button" onclick="listBLE()" disabled>list all</button>
+    &nbsp;<button type= "button" id="list_button" onclick="listBLEnew()" disabled>list all</button>
   </td><td>
     &nbsp;<button type= "button" id="save_button" onclick="saveData()" disabled>get ready to save</button>
   </td><td>
@@ -163,9 +163,31 @@
 	var bluetoothDevice;
 	var incomingCharacteristic;
 
-	async function listBLE() {
+	async function listBLEnew() {
 		myDeviceName = document.getElementById("myDevice").value;
 		myServiceUUID = document.getElementById("myService").value;
+		myReceiveUUID = document.getElementById("myReceive").value;
+		mySendUUID = document.getElementById("mySend").value;
+		console.log(myDeviceName, myServiceUUID, myReceiveUUID, mySendUUID);
+		try {
+			if (!bluetoothDevice) {
+				await requestDeviceNew();
+			}
+			console.log('Connect Device ...');
+			await connectDeviceAndCacheCharacteristics();
+			console.log('Reading incoming ...');
+			await incomingCharacteristic.readValue();
+		} catch(error) {
+			console.log('Argh! ' + error);
+		}
+		console.log("end of listBLE");
+		connectButton.disabled = true;
+		saveButton.disabled = false;
+	}
+	
+	async function listBLE() {
+		myDeviceName = "";
+		myServiceUUID = 0x0
 		myReceiveUUID = document.getElementById("myReceive").value;
 		mySendUUID = document.getElementById("mySend").value;
 		console.log(myDeviceName, myServiceUUID, myReceiveUUID, mySendUUID);
@@ -185,6 +207,20 @@
 		saveButton.disabled = false;
 	}
 	
+	async function requestDeviceNew() {
+		console.log('Requesting Bluetooth Device (Circuitpy or Arduino)');
+		bluetoothDevice = await navigator.bluetooth.requestDevice({
+			// filters: [...] <- Prefer filters to save energy & show relevant devices.
+			acceptAllDevices: tue,
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: myDeviceName} ],
+			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
+			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
+			 myServiceUUID,
+			 0x1809] // NRFsend temperature service - note the 0x and missing '' in a standard service type uuid ...
+		});
+		bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+	}
+
 	async function requestDevice() {
 		console.log('Requesting Bluetooth Device (Circuitpy or Arduino)');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
