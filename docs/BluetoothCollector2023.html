@@ -293,7 +293,7 @@
 		listCharacteristics = await service.getCharacteristics();
 		console.log(listCharacteristics);
 
-		listCharacteristics.array.forEach(element => {
+		listCharacteristics.forEach(element => {
 			console.log(element);
 			console.log(element.properties.read);
 			console.log(element.properties.write);
