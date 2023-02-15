@@ -332,6 +332,10 @@
 	* listener has been added. 
 	*/
 	function handleIncoming(event) {
+		if (debug) {
+			console.log('handleIncoming', event.target.uuid);
+		};
+		
 		//t1 = performance.now();
 		//console.log('> event handler', event.target.value);
 		//var string = new TextDecoder().decode(event.target.value);
@@ -382,6 +386,19 @@
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
 			};
 
+			
+			
+		// HM10 Bluetooth module with HM10 SendReceive
+		if (event.target.uuid.startsWith('0000ffe1')) {
+			if (debug) {
+				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value);
+				console.log('values:', event.target.value.getInt16(0), ',', event.target.value.getInt16(1), ',', event.target.value.getInt16(2), ',', event.target.value.getInt16(3));
+			};
+			
+			
+		}
+
+		
 /*		
 			if (sampleTime>0) { // process if it is time
 				if (averageSamples) {
