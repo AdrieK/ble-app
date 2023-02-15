@@ -385,8 +385,8 @@
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
 			};
+		}
 
-			
 			
 		// HM10 Bluetooth module with HM10 SendReceive
 		if (event.target.uuid.startsWith('0000ffe1')) {
@@ -394,6 +394,8 @@
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value);
 				console.log('values:', event.target.value.getInt16(0), ',', event.target.value.getInt16(1), ',', event.target.value.getInt16(2), ',', event.target.value.getInt16(3));
 			};
+			
+			myValue = event.target.value.getInt16(2);
 			
 			
 		}
@@ -422,7 +424,6 @@
 				//showData();
 			}
 */		
-		}
 
 		if (sampleTime>0) { // process if it is time
 			if (averageSamples) {
