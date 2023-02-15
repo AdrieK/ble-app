@@ -397,6 +397,9 @@
 				console.log('values:', event.target.value.getInt16[0], ',', event.target.value.getInt16[2], ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
 			};
 			
+			s = dec.decode(event.target.value);
+			console.log(s);
+			
 			myValue = event.target.value.getInt16(4);
 			
 			
