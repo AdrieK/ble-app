@@ -394,6 +394,7 @@
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value);
 				//** getIn16 parameter is byte-offset, not index!!!
 				console.log('values:', event.target.value.getInt16(0), ',', event.target.value.getInt16(2), ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
+				console.log('values:', event.target.value.getInt16[0], ',', event.target.value.getInt16[2], ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
 			};
 			
 			myValue = event.target.value.getInt16(4);
