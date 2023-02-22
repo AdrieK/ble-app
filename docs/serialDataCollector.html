@@ -1,0 +1,39 @@
+// https://developer.chrome.com/articles/serial/
+// about://device-log
+
+<button id="button">hello</button>
+
+<script>
+if ("serial" in navigator) {
+  console.log('serial API available');
+  // The Web Serial API is supported.
+}
+  
+document.querySelector('button').addEventListener('click', async () => {
+  // Prompt user to select any serial port.
+  const port = await navigator.serial.requestPort();
+});
+  
+ // Get all serial ports the user has previously granted the website access to.
+const ports = await navigator.serial.getPorts();
+  
+// Filter on devices with the Arduino Uno USB Vendor/Product IDs.
+const filters = [
+  { usbVendorId: 0x2341, usbProductId: 0x0043 },
+  { usbVendorId: 0x2341, usbProductId: 0x0001 }
+];
+
+// Prompt user to select an Arduino Uno device.
+const port = await navigator.serial.requestPort({ filters });
+
+const { usbProductId, usbVendorId } = port.getInfo();
+  
+  
+// Prompt user to select any serial port.
+const port = await navigator.serial.requestPort();
+
+// Wait for the serial port to open.
+await port.open({ baudRate: 9600 });
+
+
+</script>
