@@ -220,14 +220,17 @@
 		if (debug) console.log('ON Button clicked');
 		onOffState = true; // true is on...
 		btnOn.disabled = true;
-		btnOff.disabled = false; 
+		btnOff.disabled = false;
+		document.getElementById("deviceID").innerHTML = "Current state = ON";
+
 	}
 
 	function offButton() {
 		if (debug) console.log('OFF Button clicked');
 		onOffState = true; // false is off...
 		btnOn.disabled = false; 
-		btnOff.disabled = true; 	
+		btnOff.disabled = true; 
+		document.getElementById("deviceID").innerHTML = "Current state = OFF";
 	}
 	
 
