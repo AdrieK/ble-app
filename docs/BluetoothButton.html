@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>BLE Button</title>
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
+</head>
+
+<body>
+ <h1 id="hd1">&nbsp;</h1>
+<script>
+ document.cookie = "aap=test";
+</script> 
+
+ <table border="1">
+  <tr><td>
+    &nbsp;<button style="background-color:green;height:200px;width:200px;border-radius:32px" type= "button" id="on_button" onclick="onButton()">ON</button>
+  </td><td>
+    &nbsp;<button type= "button" id="connect_button" onclick="listBLE()" >connect</button>
+  </td></tr>
+  <tr><td>
+    &nbsp;<button style="background-color:red;height:200px;width:200px;border-radius:32px" class="bigbutton" type= "button" id="off_button" onclick="offButton()">OFF</button>
+  </td><td>
+  <tr>
+    <td id="deviceID">&nbsp;</td>
+    <td id="serviceID" colspan="3">&nbsp;</td>
+	</tr>
+  </table>
+
+<table style="width:80vw; height:40vh;">
+<tbody> 
+</table>
+
+
+  <script>
+	// commented out the (afaik) not used anymore variables
+    //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    let myCharacteristic;
+    let myValue = 0;
+
+	var timeStarted;	
+	var debug = true;
+	
+	// incoming data
+	let Rdut = -1;
+	
+	var notifyChar;
+	var enc = new TextEncoder(); // need arraybuffer to send data 
+	var dec = new TextDecoder(); // need arraybuffer to send data 
+	var incoming = '';
+
+
+	// BLE The async way...
+	// https://googlechrome.github.io/samples/web-bluetooth/read-characteristic-value-changed-async-await.html	
+	var bluetoothDevice;
+	var incomingCharacteristic;
+
+	var btnOn = document.getElementById("on_button");
+	var btnOff = document.getElementById("off_button");
+	var btnConnect = document.getElementById("connect_button");
+	btnOff.disabled = false;
+
+	console.log('end variables');
+	
+
+	async function listBLE() {
+		myDeviceName = "foobar";
+		//myServiceUUID = 0x0
+		//myReceiveUUID = document.getElementById("myReceive").value;
+		//mySendUUID = document.getElementById("mySend").value;
+		//console.log(myDeviceName, myServiceUUID, myReceiveUUID, mySendUUID);
+		try {
+			if (!bluetoothDevice) {
+				await requestDevice();
+			}
+			console.log('Connect Device ...');
+			await connectDeviceAndCacheCharacteristics();
+			console.log('Reading incoming ...');
+			await incomingCharacteristic.readValue();
+		} catch(error) {
+			console.log('Argh! (listBLE) ' + error);
+		}
+		console.log("end of listBLE");
+		connectButton.disabled = true;
+		saveButton.disabled = false;
+	}
+	
+	async function requestDevice() {
+		console.log('Requesting Bluetooth Device (Circuitpy or Arduino)');
+		bluetoothDevice = await navigator.bluetooth.requestDevice({
+			// filters: [...] <- Prefer filters to save energy & show relevant devices.
+			acceptAllDevices: false,
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"}, ],
+			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
+			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
+			 0x1809] // NRFsend temperature service - note the 0x and missing '' in a standard service type uuid ...
+		});
+		bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+	}
+
+	async function connectDeviceAndCacheCharacteristics() {
+		if (bluetoothDevice.gatt.connected && incomingCharacteristic) {
+			console.log('already connected');
+			return;
+		}
+
+		console.log('Connecting to GATT Server...');
+		const server = await bluetoothDevice.gatt.connect();
+		console.log('server:', server.device.name);
+
+		let serviceName = 'unknown';
+		document.getElementById("deviceID").innerHTML = server.device.name;
+
+		if (server.device.name.startsWith("Arduino")) {
+			serviceName = '19b10000-e8f2-537e-4f6c-d104768a1214';
+			characteristicName = '19b10002-e8f2-537e-4f6c-d104768a1214';
+		}
+
+		if (server.device.name.startsWith("CIRCUITPY")) {
+			serviceName = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+			characteristicName = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+		}
+
+		console.log('Getting Service...', serviceName);
+		document.getElementById("serviceID").innerHTML = serviceName+"<br>"+characteristicName;
+
+		const service = await server.getPrimaryService(serviceName);
+
+		
+		if (debug) console.log('Getting Incoming Characteristic...', characteristicName);
+
+		// *********** experimental
+		console.log("listCharacteristics");
+		listCharacteristics = await service.getCharacteristics();
+		//console.log(listCharacteristics);
+
+		listCharacteristics.forEach(e => {
+			//console.log(element);
+			console.log(e.properties.write, e.properties.read, e.properties.notify);			
+		});
+		// ***********
+
+		incomingCharacteristic = await service.getCharacteristic(characteristicName);
+
+		//console.log('Incoming Characteristic...', incomingCharacteristic);
+		incomingCharacteristic.addEventListener('characteristicvaluechanged', handleIncoming);
+		await incomingCharacteristic.startNotifications(); // otherwise nothing happens...
+		timeStarted = Date.now();
+	
+
+		if (server.device.name.startsWith("CIRCUITPY")) {
+			console.log('Getting outgoing Characteristic...');
+			outgoingCharacteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
+			message = enc.encode("test");
+			outgoingCharacteristic.writeValue(message);
+		}
+
+	}
+
+	/* 
+	* This function will be called when `readValue` resolves and
+	* characteristic value changes since `characteristicvaluechanged` event
+	* listener has been added. 
+	*/
+	function handleIncoming(event) {
+		if (debug) {
+			console.log('handleIncoming', event.target.uuid);
+		};
+		
+		//t1 = performance.now();
+		//console.log('> event handler', event.target.value);
+		//var string = new TextDecoder().decode(event.target.value);
+		var string = dec.decode(event.target.value);
+		//console.log(event.target);
+		//console.log(event.timeStamp);
+		//console.log(event.target.uuid);
+		
+		// CIRCUITPY UART data consists of partial strings that must be 
+		// concatenated and decoded of an end of line (cr/lf) is received.
+		if (event.target.uuid.startsWith('6e400003')) {
+			// console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+			incoming += string
+			var cnt
+			if (incoming.indexOf('\r\n')>0) {
+				p = incoming.split('\r\n')[0];
+				q = p.split('=');
+				r = q[1];
+				myValue = parseFloat(r);
+
+				if (debug) {
+					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
+				}
+				
+				
+				// keep the rest of the data for later processing.
+				pos=incoming.indexOf('\r\n')+2;
+				len=incoming.lenght-pos-2;
+				incoming=incoming.substr(pos,len);
+				// console.log('>> rest: ', incoming);
+				
+				message = enc.encode(myValue);
+				outgoingCharacteristic.writeValue(message);
+			}
+		}
+		
+		showData();
+	}
+	
+	async function onDisconnected() {
+		console.log('> Bluetooth Device disconnected');
+		try {
+			await connectDeviceAndCacheCharacteristics()
+		} catch(error) {
+			console.log('Argh! (onDisconnect) ' + error);
+		}
+	}
+/// End of async / BLE functions
+
+	function onButton() {
+		if (debug) console.log('ON Button clicked');
+		onOffState = true; // true is on...
+		btnOn.disabled = true;
+		btnOff.disabled = false; 
+	}
+
+	function offButton() {
+		if (debug) console.log('OFF Button clicked');
+		onOffState = true; // false is off...
+		btnOn.disabled = false; 
+		btnOff.disabled = true; 	
+	}
+	
+
+    function showData() { 
+		if (debug) console.log('showData');
+		document.getElementById("valueID").innerHTML = "value: " + myValue + "<br>#points: " + points.length;
+    }
+
+	
+
+  </script>
+ 
+
+	<script> 
+     // mimic the 'onready' function (avoid jquery) - this must be at the end of the (html) file!  
+   	 // console.log('document ready (plane JS)');
+      var t = new Date();
+
+	</script>
+</body>
+</html>
