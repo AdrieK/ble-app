@@ -77,14 +77,14 @@
 			}
 			console.log('Connect Device ...');
 			await connectDeviceAndCacheCharacteristics();
-			console.log('Reading incoming ...');
-			await incomingCharacteristic.readValue();
+			//console.log('Reading incoming ...');
+			//await incomingCharacteristic.readValue();
 		} catch(error) {
 			console.log('Argh! (listBLE) ' + error);
 		}
+		btnOn.disabled = false;
+		btnConnect.disabled = true;
 		console.log("end of listBLE");
-		//connectButton.disabled = true;
-		//saveButton.disabled = false;
 	}
 	
 	async function requestDevice() {
