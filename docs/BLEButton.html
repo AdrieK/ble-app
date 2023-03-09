@@ -59,12 +59,10 @@
 	var btnOff = document.getElementById("off_button");
 	var btnConnect = document.getElementById("connect_button");
 	var onOffState = false;
+	btnOn.disabled = true;
 	btnOff.disabled = true;
-	btnOff.disabled = true;
-
 	console.log('end variables');
 	
-
 	async function listBLE() {
 		myDeviceName = "foobar";
 		//myServiceUUID = 0x0
