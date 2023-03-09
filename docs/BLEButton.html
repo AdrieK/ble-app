@@ -55,11 +55,12 @@
 	var bluetoothDevice;
 	var incomingCharacteristic;
 
-	var onOffState = false;
 	var btnOn = document.getElementById("on_button");
 	var btnOff = document.getElementById("off_button");
 	var btnConnect = document.getElementById("connect_button");
-	btnOff.disabled = false;
+	var onOffState = false;
+	btnOff.disabled = true;
+	btnOff.disabled = true;
 
 	console.log('end variables');
 	
@@ -105,7 +106,6 @@
 			return;
 		}
 
-		btnConnect.disabled=false;
 		console.log('Connecting to GATT Server...');
 		const server = await bluetoothDevice.gatt.connect();
 		console.log('server:', server.device.name);
@@ -156,6 +156,10 @@
 			message = enc.encode("test");
 			outgoingCharacteristic.writeValue(message);
 		}
+		
+		btnConnect.disabled=false;
+		btnOn.disabled=false;
+
 
 	}
 
