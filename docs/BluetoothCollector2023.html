@@ -333,7 +333,7 @@
 	*/
 	function handleIncoming(event) {
 		if (debug) {
-			console.log('handleIncoming', event.target.uuid);
+			console.log('handleIncoming', event.target.uuid, event.target.value);
 		};
 		
 		//t1 = performance.now();
@@ -347,7 +347,7 @@
 		// CIRCUITPY UART data consists of partial strings that must be 
 		// concatenated and decoded of an end of line (cr/lf) is received.
 		if (event.target.uuid.startsWith('6e400003')) {
-			// console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+			console.log('> Received: ', string, '|', string.indexOf('\r\n'));
 			incoming += string
 			var cnt
 			if (incoming.indexOf('\r\n')>0) {
