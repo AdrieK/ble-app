@@ -347,7 +347,9 @@
 		// CIRCUITPY UART data consists of partial strings that must be 
 		// concatenated and decoded of an end of line (cr/lf) is received.
 		if (event.target.uuid.startsWith('6e400003')) {
-			console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+			if (debug) {
+				console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+			};
 			incoming += string
 			var cnt
 			if (incoming.indexOf('\r\n')>0) {
