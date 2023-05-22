@@ -210,7 +210,7 @@
 		//console.log('> event handler', event.target.value);
 		//var string = new TextDecoder().decode(event.target.value);
 		var string = dec.decode(event.target.value);
-		// console.log('> Received: ', string, '|', string.indexOf('\r\n'));
+		console.log('> Received: ', string, '|', string.indexOf('\r\n'));
 		incoming += string
 		var cnt
 		if (incoming.indexOf('\r\n')>0) {
