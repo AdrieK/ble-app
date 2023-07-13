@@ -365,8 +365,8 @@
 				p = incoming.split('\r\n')[0];
 				console.log('P',p);
 				if (p.substr(0,1) == 'R') {
-					resNum = substr(p,1,1);
-					resVal = substr(p.split(';')[0],2);
+					resNum = p.substr(p,1,1);
+					resVal = p.split(';')[0].substr(2);
 					if (debug) {
 						console.log('>> R',p, 'num', resNum, 'val', resVal); 
 					}
