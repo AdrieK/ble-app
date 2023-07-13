@@ -198,10 +198,14 @@
 			}
 			console.log('Connect Device ...');
 			await connectDeviceAndCacheCharacteristics();
+		} catch(error) {
+			console.log('Argh! (connectDeviceAndCacheCharacteristics) ' + error);
+		}
+		try {
 			console.log('Reading incoming ...');
 			await incomingCharacteristic.readValue();
 		} catch(error) {
-			console.log('Argh! (listBLE) ' + error);
+			console.log('Argh! (incomingCharacteristic.readValue()) ' + error);
 		}
 		console.log("end of listBLE");
 		connectButton.disabled = true;
@@ -319,6 +323,9 @@
 			console.log('Getting outgoing Characteristic...');
 			outgoingCharacteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
 			message = enc.encode("test");
+			if (debug) {
+				console.log('write test message');
+			}
 			outgoingCharacteristic.writeValue(message);
 		}
 
