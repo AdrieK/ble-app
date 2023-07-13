@@ -201,12 +201,14 @@
 		} catch(error) {
 			console.log('Argh! (connectDeviceAndCacheCharacteristics) ' + error);
 		}
+		/*
 		try {
 			console.log('Reading incoming ...');
 			await incomingCharacteristic.readValue();
 		} catch(error) {
 			console.log('Argh! (incomingCharacteristic.readValue()) ' + error);
 		}
+  		*/
 		console.log("end of listBLE");
 		connectButton.disabled = true;
 		saveButton.disabled = false;
@@ -359,8 +361,16 @@
 			};
 			incoming += string
 			var cnt
-			if (incoming.indexOf('\r\n')>0) {
+			if (incoming.indexOf('\r\n')>0) { # end of line
 				p = incoming.split('\r\n')[0];
+				if (p[0] == 'R') {
+					resNum = p[0][1];
+					resVal = substr(p[0].split(';')[0],2);
+
+					if (debug) {
+						console.log('>> R',p[0], 'num', resNum, 'val', resVal); 
+					}
+							 
 				q = p.split('=');
 				r = q[1];
 				myValue = parseFloat(r);
