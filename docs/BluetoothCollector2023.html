@@ -361,7 +361,7 @@
 			};
 			incoming += string
 			var cnt
-			if (incoming.indexOf('\r\n')>0) { # end of line
+			if (incoming.indexOf('\r\n')>0) { // end of line
 				p = incoming.split('\r\n')[0];
 				if (p[0] == 'R') {
 					resNum = p[0][1];
