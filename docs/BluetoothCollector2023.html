@@ -363,13 +363,13 @@
 			var cnt
 			if (incoming.indexOf('\r\n')>0) { // end of line
 				p = incoming.split('\r\n')[0];
-				if (p[0] == 'R') {
-					resNum = p[0][1];
-					resVal = substr(p[0].split(';')[0],2);
-
+				if (p == 'R') {
+					resNum = substr(p,1,1);
+					resVal = substr(p.split(';')[0],2);
 					if (debug) {
-						console.log('>> R',p[0], 'num', resNum, 'val', resVal); 
+						console.log('>> R',p, 'num', resNum, 'val', resVal); 
 					}
+				}
 							 
 				q = p.split('=');
 				r = q[1];
