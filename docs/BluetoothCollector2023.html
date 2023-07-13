@@ -363,7 +363,8 @@
 			var cnt
 			if (incoming.indexOf('\r\n')>0) { // end of line
 				p = incoming.split('\r\n')[0];
-				if (p == 'R') {
+				console.log('P',p);
+				if (substr(p,0,1) == 'R') {
 					resNum = substr(p,1,1);
 					resVal = substr(p.split(';')[0],2);
 					if (debug) {
