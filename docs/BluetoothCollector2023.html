@@ -129,6 +129,9 @@
     //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
     let myCharacteristic;
     let myValue = 0;
+    let myValue1 = NaN;
+    let myValue2 = NaN;
+    let myNum = -1;
 
 	// data stores the last captured value, 
 	// points stores the same data, but in sets of 4 points (original IMU data)
@@ -350,7 +353,7 @@
 	function parseR(p) {
 		resNum = parseInt(p.substr(1).split(';')[0])
 		resVal = parseFloat(p.split(';')[1])
-		if (true) {
+		if (debug) {
 			console.log('>> R',p, 'num', resNum, 'val', resVal)
 		}
 		return [resNum,resVal]
@@ -384,10 +387,21 @@
 			var cnt
 			if (incoming.indexOf('\r\n')>0) { // end of line
 				p = incoming.split('\r\n')[0]
-				console.log('P',p);
+				// console.log('P',p);
 				if (p.substr(0,1) == 'R') {
-					myValue = parseR(p)[1]
-					console.log('R', myValue)
+					r = parseR(p)
+					myNum = r[0]
+					if (myNum==0) {
+						myValue = r[1]
+					}
+					if (myNum==1) {
+						myValue1 = r[1]
+					}
+
+					if (myNum==2) {
+						myValue2 = r[1]
+					}
+
 				} else { // legacy format: COUNT = <value>\r\n
 					q = p.split('=')
 					r = q[1]
@@ -409,6 +423,7 @@
 				incoming=incoming.substr(pos,len);
 				// console.log('>> rest: ', incoming);
 				
+				// return the result (just to keep the connection alive)
 				message = enc.encode(myValue);
 				outgoingCharacteristic.writeValue(message);
 				//plot(myValue, NaN, NaN);
@@ -486,7 +501,9 @@
 				plot(myValue, NaN, NaN);
 			}
 		} else { // process every received point
-			plot(myValue, NaN, NaN);
+			//console.log('PLOT', myValue, myValue1, myValue2)
+			plot(myValue, myValue1, myValue2)
+			storeData(myValue, myValue1, myValue2)
 		}
 		
 		//plotData();
@@ -519,11 +536,11 @@
       g.updateOptions({ 'file': data });
 	  
 	  // and store in dataset
-	  storeData(ax, ay, az); 
+	  // storeData(ax, ay, az); 
 	}
 
 	function storeData(ax, ay, az) {
-	  points.push(Date.now() + ','+ ax +'\n');
+	  points.push(Date.now() + ','+ ax + ','+ ay  + ','+ az +'\n');
 	}
 
 	function plotData(ax, ay, az) {
