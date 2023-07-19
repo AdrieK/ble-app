@@ -502,8 +502,11 @@
 			}
 		} else { // process every received point
 			//console.log('PLOT', myValue, myValue1, myValue2)
-			plot(myValue, myValue1, myValue2)
-			storeData(myValue, myValue1, myValue2)
+			// TODO: Mickey Mouse!
+			if (myNum==0) {
+				plot(myValue, myValue1, myValue2)
+				storeData(myValue, myValue1, myValue2)
+			}
 		}
 		
 		//plotData();
