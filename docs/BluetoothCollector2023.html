@@ -34,30 +34,34 @@
   </td><td>
     &nbsp;<button type= "button" id="test_button" onclick="debugPressed()">toggle debug</button>
   </td></tr>
-  <tr><td id="valueID">&nbsp;</td><td colspan="3">
-   &nbsp;<a download="bluetoothData.csv" id="downloadlink" style="visibility:hidden">Download (right click for save-as dialog)</a>
-  </td></tr>
+  <tr>
+    <td id="valueID">&nbsp;</td>
+	<td colspan="2">
+   &nbsp;<a download="bluetoothData.csv" id="downloadlink" style="visibility:hidden">Download (right click for save-as dialog)</a></td>
+   <td id="versionID">&nbsp;</td>
+
+  </tr>
   <tr><td colspan="4">
-	<input type="radio" id="0s" name="sample_time" onclick="sampleClick(0)" checked>
-	<label for="0s">max speed</label>
+	<input type="radio" id="0.1s" name="sample_time" onclick="sampleClick(0.1)">
+	<label for="0.1s">0.1s</label>
 	<input type="radio" id="0.2s" name="sample_time" onclick="sampleClick(0.2)">
 	<label for="1s">0.2s</label>
 	<input type="radio" id="0.5s" name="sample_time" onclick="sampleClick(0.5)">
 	<label for="1s">0.5s</label>
-	<input type="radio" id="1s" name="sample_time" onclick="sampleClick(1)">
+	<input type="radio" id="1.0s" name="sample_time" onclick="sampleClick(1)">
 	<label for="1s">1s</label>
-	<input type="radio" id="2s" name="sample_time" onclick="sampleClick(2)">
+	<input type="radio" id="2.0s" name="sample_time" onclick="sampleClick(2)">
 	<label for="1s">2s</label>
-	<input type="radio" id="5s" name="sample_time" onclick="sampleClick(5)">
+	<input type="radio" id="5.0s" name="sample_time" onclick="sampleClick(5)">
 	<label for="1s">5s</label>
-	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(10)">
+	<input type="radio" id="10.0s" name="sample_time" onclick="sampleClick(10)">
 	<label for="10s">10s</label>
-	<input type="radio" id="20s" name="sample_time" onclick="sampleClick(20)">
+	<input type="radio" id="20.0s" name="sample_time" onclick="sampleClick(20)">
 	<label for="10s">20s</label>
 	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
 	<label for="60s">1 min</label>
-	<input type="checkbox" id="avg" name="average" onclick="averageClick()">
-	<label for="a">average</label>
+	<!--input type="checkbox" id="avg" name="average" onclick="averageClick()">
+	<label for="a">average</label-->
   </td></tr>
   <tr>
     <td id="deviceID">&nbsp;</td>
@@ -127,11 +131,15 @@
   <script>
 	// commented out the (afaik) not used anymore variables
     //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
-    let myCharacteristic;
-    let myValue = 0;
-    let myValue1 = NaN;
-    let myValue2 = NaN;
-    let myNum = -1;
+    let myCharacteristic
+    let myValue = 0
+    let myValue0 = NaN
+    let myValue1 = NaN
+    let myValue2 = NaN
+    let myValue3 = NaN
+    let myNum = -1
+	let SWversion = ""
+	let HWversion = ""
 
 	// data stores the last captured value, 
 	// points stores the same data, but in sets of 4 points (original IMU data)
@@ -369,14 +377,8 @@
 			console.log('handleIncoming', event.target.uuid, event.target.value);
 		};
 		
-		//t1 = performance.now();
-		//console.log('> event handler', event.target.value);
-		//var string = new TextDecoder().decode(event.target.value);
 		var string = dec.decode(event.target.value);
-		//console.log(event.target);
-		//console.log(event.timeStamp);
-		//console.log(event.target.uuid);
-		
+
 		// CIRCUITPY UART data consists of partial strings that must be 
 		// concatenated and decoded of an end of line (cr/lf) is received.
 		if (event.target.uuid.startsWith('6e400003')) {
@@ -385,28 +387,36 @@
 			};
 			incoming += string
 			var cnt
-			if (incoming.indexOf('\r\n')>0) { // end of line
+			if (incoming.indexOf('\r\n')>0) { // end of line - process
 				p = incoming.split('\r\n')[0]
-				console.log('P',p);
+				// console.log('P',p);
 				if (p.substr(0,1) == 'R') {
 					r = parseR(p)
 					myNum = r[0]
 					if (myNum==0) {
-						myValue = r[1]
+						myValue0 = r[1]
 					}
 					if (myNum==1) {
 						myValue1 = r[1]
 					}
-
 					if (myNum==2) {
 						myValue2 = r[1]
 					}
+					if (myNum==3) {
+						myValue3 = r[1]
+					}
 				} else if (p.substr(0,1) == 'W') {
-					SWversion = p
-					console.log('SW', SWversion)
+					SWversion = p.substring(1).split(';')[0]
+					console.log('SW', SWversion)			
+					showVersions()
 				} else if (p.substr(0,1) == 'Y') {
-					HWversion = p
+					HWversion = p.substring(1)
 					console.log('HW', HWversion)
+					showVersions()
+				} else if (p.substr(0,1) == 'S') { // speed setting
+					sr = p.substring(1).split(';')[0]
+					console.log('S', sr)
+					setSampleTime(sr)
 				} else { // legacy format: COUNT = <value>\r\n
 					q = p.split('=')
 					r = q[1]
@@ -416,21 +426,15 @@
 				if (debug) {
 					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
 				}
-				
-				// in one version we got x,y, z accelerometer data
-				//Ax = parseFloat(q.split(' ')[3]);
-				//Ay = parseFloat(q.split(' ')[4]);
-				//Az = parseFloat(q.split(' ')[5]);
-				
+			
 				// keep the rest of the data for later processing.
 				pos=incoming.indexOf('\r\n')+2;
 				len=incoming.lenght-pos-2;
 				incoming=incoming.substr(pos,len);
 				// console.log('>> rest: ', incoming);
-				
 				// return the result (just to keep the connection alive)
-				message = enc.encode(myValue);
-				outgoingCharacteristic.writeValue(message);
+				// message = enc.encode(myValue);
+				// outgoingCharacteristic.writeValue(message);
 			}
 		}
 
@@ -487,34 +491,35 @@
 			}
 */		
 
-		if (sampleTime>0) { // process if it is time
-			if (averageSamples) {
-				sumSamples = sumSamples + myValue;
-				numSamples++;
-			}
+		//if (sampleTime>0) { // process if it is time
+			//if (averageSamples) {
+			//	sumSamples = sumSamples + myValue;
+			//	numSamples++;
+			//}
 		
-			if (Date.now() > nextSampleTime) {
+		
+			//if (Date.now() > nextSampleTime) {
 				//console.log("now", Date.now(), nextSampleTime, sumSamples, numSamples, sumSamples/numSamples);
-				nextSampleTime = Date.now() + sampleTime;
-				if (averageSamples) {
-					myValue = (sumSamples/numSamples).toFixed(2);
-					sumSamples = 0;
-					numSamples = 0;
-				}
-				plot(myValue, NaN, NaN);
-			}
-		} else { // process every received point
-			//console.log('PLOT', myValue, myValue1, myValue2)
-			plot(myValue, myValue1, myValue2)
-			// TODO: Mickey Mouse!
+			//	nextSampleTime = Date.now() + sampleTime;
+			//	if (averageSamples) {
+			//		myValue = (sumSamples/numSamples).toFixed(2);
+			//		sumSamples = 0;
+			//		numSamples = 0;
+			//	}
+			//	plot(myValue, NaN, NaN);
+			//}
+		//} else { // process every received point
+			// TODO: get rid of Mickey Mouse!
 			if (myNum==0) {
-				storeData(myValue, myValue1, myValue2)
+				plotData(myValue0, myValue1, myValue2, myValue3)
+				storeData(myValue0, myValue1, myValue2, myValue3)
+				showData3(myValue0, myValue1, myValue2, myValue3)
 			}
-		}
+		//}
 		
 		//plotData();
 		//storeData();
-		showData();
+		//showData();
 
 	}
 	
@@ -530,32 +535,41 @@
 
 
 // Plot and data functions
-	function plot(ax, ay, az) {
+	function plotData(a0, a1, a2, a3) {
       //Everything is set up for 3 values (accelerometer), 
 	  //keep those for future extensions (or adapt Dygraph config also)
       var d = new Date();  // current time
-      var x = ax;
-      var y = ay;
-      var z = az;
+      //var x = a0;
+      //var y = a1;
+      //var z = a2;
       data.shift(); // remove the oldest point
-      data.push([d, x, y, z]); // add the newest
+      data.push([d, a0, a1, a2, a3]); // add the newest
       g.updateOptions({ 'file': data });
 	  
 	  // and store in dataset
 	  // storeData(ax, ay, az); 
 	}
 
-	function storeData(ax, ay, az) {
-	  points.push(Date.now() + ','+ ax + ','+ ay  + ','+ az +'\n');
+	function storeData(a0, a1, a2, a3) {
+	  points.push(Date.now() + ','+ a0 + ','+ a1 + ',' + a2 + ','+ a3 +'\n')
 	}
 
-	function plotData(ax, ay, az) {
-	}	
 
     function showData() { 
 		if (debug) console.log('showData');
 		document.getElementById("valueID").innerHTML = "value: " + myValue + "<br>#points: " + points.length;
     }
+
+    function showData3(a0, a1, a2, a3) { 
+		if (debug) console.log('showData3', a0, a1, a2, a3);
+		document.getElementById("valueID").innerHTML = "val: " + a0 + ', ' + a1 + ', ' + a2 + ', ' + a3 +  "<br>#pts: " + points.length;
+    }
+
+	function showVersions() {
+		document.getElementById("versionID").innerHTML = 
+		  "Software: " + SWversion + 
+		  "<BR \>Hardware: " + HWversion
+	}
 
 /*	
 	function getSupportedProperties(characteristic) {
@@ -585,18 +599,28 @@
 			console.log('sendMessage', st)
 			outgoingCharacteristic.writeValue(message)		
 		}
-
 		setCookie("sampleTimeCookie", st)
 	}
 
-	// called if average tickbox is clicked.
-	function averageClick() {
+	// called if a sampletime radiobutton is clicked.
+	function setSampleTime(t) {
+		st = t.toString()+"s";
+		console.log('sampleTime' , t, st)
+		document.getElementById(st).checked=true
 		if (debug) {
-			console.log('averageClick', avgBox.checked);
+			console.log('sampleTime' , r, st)
 		}
-		averageSamples =  avgBox.checked;
-		setCookie("averageCookie", avgBox.checked);
+		//setCookie("sampleTimeCookie", st)
 	}
+
+	// called if average tickbox is clicked.
+	//function averageClick() {
+	//	if (debug) {
+	//		console.log('averageClick', avgBox.checked);
+	//	}
+	//	averageSamples =  avgBox.checked;
+	//	setCookie("averageCookie", avgBox.checked);
+	//}
 
 	// called if explanation tickbox is clicked.
 	function explanationCLick() {
@@ -646,15 +670,15 @@ document.getElementById("demo").innerHTML = "Width: " + w + "<br>Height: " + h;
 	  // This is to get the times on the (otherwise empty) x-axis
       for (var i = dataPoints; i >= 0; i--) {
         var timeStamp = new Date(t.getTime() - i * 1000);
-        data.push([timeStamp, NaN, NaN, NaN]);
+        data.push([timeStamp, NaN, NaN, NaN, NaN]);
       }
 
       g = new Dygraph(document.getElementById("div_g"), data,
         {
           strokeWidth: 2, // lineWidth
           drawPoints: true,
-          labels: ['Time', 'R0', 'R1', 'R2'],
-          colors: ['#3B3B98', '#ff5e57', '#1dd1a1'],
+          labels: ['Time', 'R0', 'R1', 'R2', 'R3'],
+          colors: ['#3B3B98', '#ff5e57', '#1dd1a1', '#3b5ea1'],
           fillGraph: false, // fill the area below the graph
           pointSize: 0, // points
           stepPlot: false,
