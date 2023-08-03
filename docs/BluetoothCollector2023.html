@@ -453,28 +453,28 @@
 	}
 
 	function plotDataArr(a) {
-      let d = new Date()
-      data.shift(); // remove the oldest point in the list
-	  a = a.concat([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]).slice(0,8)
-      data.push([d].concat(a)); // add the newest
-	  g.updateOptions({ 'file': data });
+      		let d = new Date()
+      		data.shift(); // remove the oldest point in the list
+	  	a = a.concat([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]).slice(0,8)
+      		data.push([d].concat(a)); // add the newest
+	  	g.updateOptions({ 'file': data });
 	}
 
 	function storeData(a0, a1, a2, a3) {
-	  // let dr = d - timeStarted;  // relative time
-	  points.push(Date.now() + ','+ a0 + ','+ a1 + ',' + a2 + ','+ a3 +'\n')
+		// let dr = d - timeStarted;  // relative time
+		points.push(Date.now() + ','+ a0 + ','+ a1 + ',' + a2 + ','+ a3 +'\n')
 	}
 
 	function storeDataArr(a) {
-	  // let dr = d - timeStarted;  // relative time
-	  points.push([Date.now()].concat(a)) // '\n')
-	  //console.log("points", points)
+		// let dr = d - timeStarted;  // relative time
+		points.push([Date.now()].concat(a).concat(['\n']))
+		//console.log("points", points)
 	}
 
-    function showData() { 
+	function showData() { 
 		if (debug) console.log('showData');
 		document.getElementById("valueID").innerHTML = "value: " + myValue + "<br>#points: " + points.length;
-    }
+	}
 
     function showData3(a0, a1, a2, a3) { 
 		if (debug) console.log('showData3', a0, a1, a2, a3);
