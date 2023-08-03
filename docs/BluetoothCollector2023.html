@@ -128,10 +128,11 @@
 	}
   </script>
   
-  <script>
+	<script>
 	// commented out the (afaik) not used anymore variables
     //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
     let myCharacteristic
+	let myValues = []
     let myValue = 0
     let myValue0 = NaN
     let myValue1 = NaN
@@ -279,41 +280,21 @@
 		document.getElementById("serviceID").innerHTML = serviceName+"<br>"+characteristicName;
 		const service = await server.getPrimaryService(serviceName);
 		if (debug) console.log('Getting Incoming Characteristic...', characteristicName);
-/*		
-		// it should be possible to fill a list of services and characteristics
-		// but ble web is not really cooperative in that.
-		// so, maybe in the future?
-		if (characteristicName == 'undefined') {
-			let chars = await service.getCharacteristics();
-			console.log('chars', chars);
-			console.log('chars', chars[0].service.uuid);
-			characteristicName = chars[0].service.uuid;
-			incomingCharacteristic = await service.getCharacteristic(characteristicName);
-		} else {
-			incomingCharacteristic = await service.getCharacteristic(characteristicName);
-		};
-*/
-		// *********** experimental
+
 		console.log("listCharacteristics");
 		listCharacteristics = await service.getCharacteristics();
-		//console.log(listCharacteristics);
+		console.log(listCharacteristics);
 
 		listCharacteristics.forEach(e => {
-			//console.log(element);
 			console.log(e.properties.write, e.properties.read, e.properties.notify);			
 		});
-		// ***********
 
 		incomingCharacteristic = await service.getCharacteristic(characteristicName);
 
-//		console.log('Getting Incoming Characteristic...');
-//		incomingCharacteristic = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
-
-		//console.log('Incoming Characteristic...', incomingCharacteristic);
 		incomingCharacteristic.addEventListener('characteristicvaluechanged', handleIncoming);
 		await incomingCharacteristic.startNotifications(); // otherwise nothing happens...
 		timeStarted = Date.now();
-	
+
 
 		if (server.device.name.startsWith("CIRCUITPY")) {
 			console.log('Getting outgoing Characteristic...');
@@ -324,20 +305,6 @@
 			}
 			outgoingCharacteristic.writeValue(message);
 		}
-	}
-
-	// a resistance value (format R<num><value>; is received, parse and save
-	// R - indicates resistance parameter
-	// <num> - a single character 0 .. 9 indicating a sensor number.
-	// <value> - actual resistance value
-	// ; - end of parameter.
-	function parseR(p) {
-		resNum = parseInt(p.substr(1).split(';')[0])
-		resVal = parseFloat(p.split(';')[1])
-		if (debug) {
-			console.log('>> R',p, 'num', resNum, 'val', resVal)
-		}
-		return [resNum,resVal]
 	}
 
 	/* 
@@ -378,6 +345,9 @@
 					if (myNum==3) {
 						myValue3 = r[1]
 					}
+					myValues[myNum] = r[1]
+					//console.log('myValues', myValues)
+										
 				} else if (p.substr(0,1) == 'W') {
 					SWversion = p.substring(1).split(';')[0]
 					console.log('SW', SWversion)			
@@ -430,18 +400,20 @@
 			myValue = event.target.value.getInt16(4);
 		}
 		
-			// TODO: get rid of Mickey Mouse!
-			if (myNum==0) {
-				plotData(myValue0, myValue1, myValue2, myValue3)
-				storeData(myValue0, myValue1, myValue2, myValue3)
-				showData3(myValue0, myValue1, myValue2, myValue3)
-			}
-		//}
-		
+		// TODO: get rid of Mickey Mouse!
+		// This assumes that if myNum is reset to zero a completer record can be processed.
+		// But is that the best and only way ??
+		if (myNum==0) {
+			//plotData(myValue0, myValue1, myValue2, myValue3)
+			//showData3(myValue0, myValue1, myValue2, myValue3)
+			storeData(myValue0, myValue1, myValue2, myValue3)
+			storeDataArr([myValue0, myValue1, myValue2, myValue3])
+			showDataArr(myValues)
+			plotDataArr(myValues) // pass an array
+		}
 		//plotData();
 		//storeData();
 		//showData();
-
 	}
 	
 	async function onDisconnected() {
@@ -454,8 +426,25 @@
 	}
 /// End of async / BLE functions
 
+</script>
 
-	// Plot and data functions
+<script>
+	// Plot and data handling functions
+
+	// a resistance value (format R<num><value>; is received, parse and save
+	// R - indicates resistance parameter
+	// <num> - a single character 0 .. 9 indicating a sensor number.
+	// <value> - actual resistance value
+	// ; - end of parameter.
+	function parseR(p) {
+		resNum = parseInt(p.substr(1).split(';')[0])
+		resVal = parseFloat(p.split(';')[1])
+		if (debug) {
+			console.log('>> R',p, 'num', resNum, 'val', resVal)
+		}
+		return [resNum,resVal]
+	}
+
 	function plotData(a0, a1, a2, a3) {
       var d = new Date();  // current time
       data.shift(); // remove the oldest point
@@ -463,8 +452,23 @@
       g.updateOptions({ 'file': data });
 	}
 
+	function plotDataArr(a) {
+      let d = new Date()
+      data.shift(); // remove the oldest point in the list
+	  a = a.concat([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]).slice(0,8)
+      data.push([d].concat(a)); // add the newest
+	  g.updateOptions({ 'file': data });
+	}
+
 	function storeData(a0, a1, a2, a3) {
+	  // let dr = d - timeStarted;  // relative time
 	  points.push(Date.now() + ','+ a0 + ','+ a1 + ',' + a2 + ','+ a3 +'\n')
+	}
+
+	function storeDataArr(a) {
+	  // let dr = d - timeStarted;  // relative time
+	  points.push([Date.now()].concat(a)) // '\n')
+	  console.log("points", points)
 	}
 
     function showData() { 
@@ -474,7 +478,16 @@
 
     function showData3(a0, a1, a2, a3) { 
 		if (debug) console.log('showData3', a0, a1, a2, a3);
-		document.getElementById("valueID").innerHTML = "val: " + a0 + ', ' + a1 + ', ' + a2 + ', ' + a3 +  "<br>#pts: " + points.length;
+		document.getElementById("valueID").innerHTML = "val: " + a0.toFixed(1) + ', ' + a1.toFixed(1) + ', ' + a2.toFixed(1) + ', ' + a3.toFixed(1) +  "<br>#pts: " + points.length;
+    }
+
+    function showDataArr(a) { 
+		if (debug) console.log('showDataArr', a);
+		document.getElementById("valueID").innerHTML = 
+		  "pts " + points.length + 
+		  " : " + a.slice(0,2) + 
+		  "<br />" + a.slice(2,5) + 
+		  "<br />" + a.slice(5)
     }
 
 	function showVersions() {
@@ -556,25 +569,30 @@
 	<script> 
      // mimic the 'onready' function (avoid jquery)  
    	 // console.log('document ready (plane JS)');
-      var t = new Date();
-	  // This is to get the times on the (otherwise empty) x-axis
-      for (var i = dataPoints; i >= 0; i--) {
-        var timeStamp = new Date(t.getTime() - i * 1000);
-        data.push([timeStamp, NaN, NaN, NaN, NaN]);
-      }
+		var t = new Date();
+		// This is to get the times on the (otherwise empty) x-axis
+		for (var i = dataPoints; i >= 0; i--) {
+			var timeStamp = new Date(t.getTime() - i * 1000);
+			//data.push([timeStamp, NaN, NaN, NaN, NaN]);
+			data.push([timeStamp, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+		}
 
-      g = new Dygraph(document.getElementById("div_g"), data,
-        {
-          strokeWidth: 2, // lineWidth
-          drawPoints: true,
-          labels: ['Time', 'R0', 'R1', 'R2', 'R3'],
-          colors: ['#3B3B98', '#ff5e57', '#1dd1a1', '#3b5ea1'],
-          fillGraph: false, // fill the area below the graph
-          pointSize: 0, // points
-          stepPlot: false,
-          xlabel: "time",
-          ylabel: "value"
-        });
+		g = new Dygraph(document.getElementById("div_g"), data,
+		{
+			strokeWidth: 2, // lineWidth
+			drawPoints: true,
+			//labels: ['Time', 'R0', 'R1', 'R2', 'R3'],
+			//colors: ['#3B3B98', '#ff5e57', '#1dd1a1', '#3b5ea1'],
+			labels: ['Time', 'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'],
+			//colors: ['#ff5e57', '#ff5e57', '#1dd1a1', '#3b5ea1', '#1B3B98', '#ef5e57', '#Fdd1a1', '#1b5ea1'],
+			//colors: ['#DC143C', '#FF7F50', '#F0E68C', '#32CD32', '#40E0D0', '#4169E1', '#DA70D6', '#DB7093'],
+			colors: ['#ffa600', '#ff7c43', '#f95d6a', '#d45087', '#a05195', '#665191', '#2f4b7c', '#003f5c'],
+			fillGraph: false, // fill the area below the graph
+			pointSize: 0, // points
+			stepPlot: false,
+			xlabel: "time",
+			ylabel: "value"
+		});
 	</script>
 </body>
 </html>
