@@ -384,8 +384,8 @@
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
 			};		
-			plotData();
-			storeData();
+			plotData(myValue);
+			storeData(myValue);
 			showData();
 		}
 			
@@ -445,11 +445,11 @@
 		return [resNum,resVal]
 	}
 
-	function plotData(a0, a1, a2, a3) {
-      var d = new Date();  // current time
-      data.shift(); // remove the oldest point
-      data.push([d, a0, a1, a2, a3]); // add the newest
-      g.updateOptions({ 'file': data });
+	function plotData(a) {
+		var d = new Date();  // current time
+      		data.shift(); // remove the oldest point
+      		data.push([d, a, NaN, NaN, NaN, NaN, NaN, NaN, NaN]); 
+      		g.updateOptions({ 'file': data });
 	}
 
 	function plotDataArr(a) {
@@ -460,9 +460,9 @@
 	  	g.updateOptions({ 'file': data });
 	}
 
-	function storeData(a0, a1, a2, a3) {
+	function storeData(a) {
 		// let dr = d - timeStarted;  // relative time
-		points.push(Date.now() + ','+ a0 + ','+ a1 + ',' + a2 + ','+ a3 +'\n')
+		points.push(Date.now() + ','+ a + '\n')
 	}
 
 	function storeDataArr(a) {
