@@ -383,7 +383,10 @@
 			
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
-			};
+			};		
+			plotData();
+			storeData();
+			showData();
 		}
 			
 		// HM10 Bluetooth module with HM10 SendReceive
@@ -411,9 +414,6 @@
 			showDataArr(myValues)
 			plotDataArr(myValues) // pass an array
 		}
-		//plotData();
-		//storeData();
-		//showData();
 	}
 	
 	async function onDisconnected() {
