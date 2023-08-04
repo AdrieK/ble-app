@@ -380,7 +380,7 @@
 		// Arduino uint32 type, receives an uint32 type.
 		if (event.target.uuid.startsWith('19b10002')) {
 			myValue = event.target.value.getUint32(0)/100
-			document.getElementByID("sampleTimeID").style.visibility="collapse"
+			document.getElementById("sampleTimeID").style.visibility="collapse"
 			
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
