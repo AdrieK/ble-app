@@ -41,7 +41,7 @@
    <td id="versionID">&nbsp;</td>
 
   </tr>
-  <tr><td id="sampleTimeID" colspan="4">
+  <tr id="sampleTimeID"><td colspan="4">
 	<input type="radio" id="0.1s" name="sample_time" onclick="sampleClick(0.1)">
 	<label for="0.1s">0.1s</label>
 	<input type="radio" id="0.2s" name="sample_time" onclick="sampleClick(0.2)">
@@ -367,7 +367,7 @@
 				}
 
 				if (debug) {
-					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
+					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue)
 				}
 			
 				// keep the rest of the data for later processing.
@@ -379,8 +379,8 @@
 
 		// Arduino uint32 type, receives an uint32 type.
 		if (event.target.uuid.startsWith('19b10002')) {
-			myValue = event.target.value.getUint32(0)/100;
-			document.getElementbyID("sampleTimeID").style.visibility="hidden";
+			myValue = event.target.value.getUint32(0)/100
+			document.getElementByID("sampleTimeID").style.visibility="collapse"
 			
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
