@@ -210,7 +210,7 @@
 	}
 	
 	async function requestDeviceNew() {
-		console.log('Requesting Bluetooth Device NEW');
+		console.log('Requesting Device NEW');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
 			acceptAllDevices: true,
@@ -225,7 +225,7 @@
 	}
 
 	async function requestDevice() {
-		console.log('Requesting Bluetooth Device (Circuitpy or Arduino)');
+		console.log('Requesting Device (predefined list)');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
 			acceptAllDevices: false,
