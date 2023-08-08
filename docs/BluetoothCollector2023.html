@@ -130,39 +130,35 @@
   
 	<script>
 	// commented out the (afaik) not used anymore variables
-    //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
-    let myCharacteristic
+    	//const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    	//let myCharacteristic
 	let myValues = []
-    let myValue = 0
-    let myValue0 = NaN
-    let myValue1 = NaN
-    let myValue2 = NaN
-    let myValue3 = NaN
-    let myNum = -1
+    	let myValue = 0
+    	let myNum = -1
 	let SWversion = ""
 	let HWversion = ""
 
 	// data stores the last captured value, 
 	// points stores the same data, but in sets of 4 points (original IMU data)
 	// var serviceList = [];
-    var data = [];
-    var points = [];
-    var g;
-    var dataPoints = 100; // 
-	var mi = 1024;
-	var ma = -1;
+    	var data = [];
+    	var points = [];
+    	var g;
+    	var dataPoints = 100; // 
+	//var mi = 1024;
+	//var ma = -1;
 	var timeStarted;	
-	var count=0;
+	//var count=0;
 	var debug = false;
 	
 	// Sampling
 	var sampleTime = 0;
-	var nextSampleTime = 0;
+	//var nextSampleTime = 0;
 
 	// Reference values used in the sensor
-	let Rdut = -1;
+	//let Rdut = -1;
 	
-	var notifyChar;
+	//var notifyChar;
 	var enc = new TextEncoder(); // need arraybuffer to send data 
 	var dec = new TextDecoder(); // need arraybuffer to receive data 
 	var incoming = '';
@@ -333,18 +329,6 @@
 				if (p.substr(0,1) == 'R') {
 					r = parseR(p)
 					myNum = r[0]
-					if (myNum==0) {
-						myValue0 = r[1]
-					}
-					if (myNum==1) {
-						myValue1 = r[1]
-					}
-					if (myNum==2) {
-						myValue2 = r[1]
-					}
-					if (myNum==3) {
-						myValue3 = r[1]
-					}
 					myValues[myNum] = r[1]
 					//console.log('myValues', myValues)
 										
@@ -387,7 +371,7 @@
 			};		
 			plotData(myValue);
 			storeData(myValue);
-			showData();
+			showData(myValue);
 		}
 			
 		// HM10 Bluetooth module with HM10 SendReceive
@@ -449,6 +433,7 @@
 	function plotData(a) {
 		var d = new Date();  // current time
       		data.shift(); // remove the oldest point
+		// single value, add dummies to satisfy the plot interface
       		data.push([d, a, NaN, NaN, NaN, NaN, NaN, NaN, NaN]); 
       		g.updateOptions({ 'file': data });
 	}
@@ -469,27 +454,21 @@
 	function storeDataArr(a) {
 		// let dr = d - timeStarted;  // relative time
 		points.push([Date.now()].concat(a).concat(['\n']))
-		//console.log("points", points)
 	}
 
-	function showData() { 
-		if (debug) console.log('showData');
-		document.getElementById("valueID").innerHTML = "value: " + myValue + "<br>#points: " + points.length;
+	function showData(a) { 
+		if (debug) console.log('showData', a);
+		document.getElementById("valueID").innerHTML = "value: " + a + "<br>#points: " + points.length;
 	}
 
-    function showData3(a0, a1, a2, a3) { 
-		if (debug) console.log('showData3', a0, a1, a2, a3);
-		document.getElementById("valueID").innerHTML = "val: " + a0.toFixed(1) + ', ' + a1.toFixed(1) + ', ' + a2.toFixed(1) + ', ' + a3.toFixed(1) +  "<br>#pts: " + points.length;
-    }
-
-    function showDataArr(a) { 
+    	function showDataArr(a) { 
 		if (debug) console.log('showDataArr', a);
 		document.getElementById("valueID").innerHTML = 
 		  "pts " + points.length + 
 		  " : " + a.slice(0,2) + 
 		  "<br />" + a.slice(2,5) + 
 		  "<br />" + a.slice(5)
-    }
+    	}
 
 	function showVersions() {
 		document.getElementById("versionID").innerHTML = 
@@ -503,7 +482,7 @@
 			console.log('sampleclick' , s, event)
 		}
 		sampleTime = s*1000; // Date.now is in milliseconds.
-		nextSampleTime = Date.now() + sampleTime
+		// nextSampleTime = Date.now() + sampleTime
 		
 		st = s.toString()+"s";
 		
