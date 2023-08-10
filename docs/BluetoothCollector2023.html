@@ -32,7 +32,7 @@
   </td><td>
     &nbsp;<button type= "button" id="reset_button" onclick="resetFunction()">reset (clear data)</button>	
   </td><td>
-    &nbsp;<button type= "button" id="test_button" onclick="debugPressed()">toggle debug</button>
+    &nbsp;<button type= "button" id="test_button" onclick="debugClicked()">toggle debug</button>
   </td></tr>
   <tr>
     <td id="valueID">&nbsp;</td>
@@ -60,8 +60,8 @@
 	<label for="10s">20s</label>
 	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
 	<label for="60s">1 min</label>
-	<!--input type="checkbox" id="avg" name="average" onclick="averageClick()">
-	<label for="a">average</label-->
+	<input type="checkbox" id="filterBox" name="filter" onclick="filterClick()" >
+	<label for="a" title="fixed filterfactor in client">exponential filter</label-->
   </td></tr>
   <tr>
     <td id="deviceID">&nbsp;</td>
@@ -121,30 +121,29 @@
 		sampleTime = parseInt(stID);		
 	}
 
-    avgc = getCookie("averageCookie");
+    avgc = getCookie("filterCookie");
 	if (avgc == "true") {
-		cb = document.getElementById("avg");
-		cb.checked = true;
+		document.getElementById("filterBox").checked = true
 	}
   </script>
   
 	<script>
 	// commented out the (afaik) not used anymore variables
-    	//const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
-    	//let myCharacteristic
+    //const serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
+    //let myCharacteristic
 	let myValues = []
-    	let myValue = 0
-    	let myNum = -1
+    let myValue = 0
+    let myNum = -1
 	let SWversion = ""
 	let HWversion = ""
 
 	// data stores the last captured value, 
 	// points stores the same data, but in sets of 4 points (original IMU data)
 	// var serviceList = [];
-    	var data = [];
-    	var points = [];
-    	var g;
-    	var dataPoints = 100; // 
+    var data = [];
+    var points = [];
+    var g;
+    var dataPoints = 100; // 
 	//var mi = 1024;
 	//var ma = -1;
 	var timeStarted;	
@@ -156,7 +155,7 @@
 	//var nextSampleTime = 0;
 
 	// Reference values used in the sensor
-	//let Rdut = -1;
+	// let Rdut = -1;
 	
 	//var notifyChar;
 	var enc = new TextEncoder(); // need arraybuffer to send data 
@@ -213,7 +212,7 @@
 		console.log('Requesting Device NEW');
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
-			acceptAllDevices: true,
+			acceptAllDevices: false,
 			filters: [ {namePrefix: myDeviceName} ],
 			optionalServices: [
 			'6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
@@ -330,7 +329,7 @@
 					r = parseR(p)
 					myNum = r[0]
 					myValues[myNum] = r[1]
-					//console.log('myValues', myValues)
+					if (debug) console.log('num:', myNum, ', val:', myValues[myNum])
 										
 				} else if (p.substr(0,1) == 'W') {
 					SWversion = p.substring(1).split(';')[0]
@@ -340,10 +339,14 @@
 					HWversion = p.substring(1)
 					console.log('HW', HWversion)
 					showVersions()
+				} else if (p.substr(0,1) == 'F') { // exponential filter
+					ef = p.substring(1).split(';')[0]
+					console.log('F', ef)
+					gotFilter(ef)
 				} else if (p.substr(0,1) == 'S') { // speed setting
 					sr = p.substring(1).split(';')[0]
 					console.log('S', sr)
-					setSampleTime(sr)
+					gotSampleTime(sr)
 				} else { // legacy format: COUNT = <value>\r\n
 					q = p.split('=')
 					r = q[1]
@@ -351,7 +354,7 @@
 				}
 
 				if (debug) {
-					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue)
+					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
 				}
 			
 				// keep the rest of the data for later processing.
@@ -363,15 +366,15 @@
 
 		// Arduino uint32 type, receives an uint32 type.
 		if (event.target.uuid.startsWith('19b10002')) {
-			myValue = event.target.value.getUint32(0)/100
-			document.getElementById("sampleTimeID").style.visibility="collapse"
+			myValue = event.target.value.getUint32(0)/100;
+			document.getElementById("sampleTimeID").style.visibility="collapse";
 			
 			if (debug) {
 				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value.getUint32(0), 'Rdut:', myValue);
-			};		
-			plotData(myValue);
-			storeData(myValue);
-			showData(myValue);
+			};
+			plotDataArr([myValue]);
+			storeDataArr([myValue]);
+			showDataArr([myValue]);
 		}
 			
 		// HM10 Bluetooth module with HM10 SendReceive
@@ -389,12 +392,9 @@
 		}
 		
 		// TODO: get rid of Mickey Mouse!
-		// This assumes that if myNum is reset to zero a completer record can be processed.
-		// But is that the best and only way ??
+		// This assumes that if myNum is reset to zero a complete record can be processed.
+		// A recordComplete boolean should be introduced?
 		if (myNum==0) {
-			//plotData(myValue0, myValue1, myValue2, myValue3)
-			//showData3(myValue0, myValue1, myValue2, myValue3)
-			//storeData(myValue0, myValue1, myValue2, myValue3)
 			storeDataArr(myValues)
 			showDataArr(myValues)
 			plotDataArr(myValues) // pass an array
@@ -430,45 +430,49 @@
 		return [resNum,resVal]
 	}
 
+/*
 	function plotData(a) {
+		if (debug) console.log('plotData', a);
 		var d = new Date();  // current time
-      		data.shift(); // remove the oldest point
+		data.shift(); // remove the oldest point
 		// single value, add dummies to satisfy the plot interface
-      		data.push([d, a, NaN, NaN, NaN, NaN, NaN, NaN, NaN]); 
-      		g.updateOptions({ 'file': data });
-	}
-
-	function plotDataArr(a) {
-      		let d = new Date()
-      		data.shift(); // remove the oldest point in the list
-	  	a = a.concat([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]).slice(0,8)
-      		data.push([d].concat(a)); // add the newest
-	  	g.updateOptions({ 'file': data });
+		data.push([d, a, NaN, NaN, NaN, NaN, NaN, NaN, NaN]); 
+		g.updateOptions({ 'file': data });
 	}
 
 	function storeData(a) {
 		// let dr = d - timeStarted;  // relative time
+		if (debug) console.log('storeData', a);
 		points.push(Date.now() + ','+ a + '\n')
-	}
-
-	function storeDataArr(a) {
-		// let dr = d - timeStarted;  // relative time
-		points.push([Date.now()].concat(a).concat(['\n']))
 	}
 
 	function showData(a) { 
 		if (debug) console.log('showData', a);
 		document.getElementById("valueID").innerHTML = "value: " + a + "<br>#points: " + points.length;
+    }
+*/
+	function plotDataArr(a) {
+		if (debug) console.log('plotDataArr', a);
+		let d = new Date()
+		data.shift(); // remove the oldest point in the list
+		a = a.concat([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]).slice(0,8)
+		data.push([d].concat(a)); // add the newest
+		g.updateOptions({ 'file': data });
 	}
 
-    	function showDataArr(a) { 
+	function storeDataArr(a) {
+		if (debug) console.log('storeDataArr', a);
+		points.push([Date.now(), Date.now()-timeStarted].concat(a).concat(['\n']))
+	}
+
+    function showDataArr(a) { 
 		if (debug) console.log('showDataArr', a);
 		document.getElementById("valueID").innerHTML = 
 		  "pts " + points.length + 
 		  " : " + a.slice(0,2) + 
 		  "<br />" + a.slice(2,5) + 
 		  "<br />" + a.slice(5)
-    	}
+    }
 
 	function showVersions() {
 		document.getElementById("versionID").innerHTML = 
@@ -482,11 +486,8 @@
 			console.log('sampleclick' , s, event)
 		}
 		sampleTime = s*1000; // Date.now is in milliseconds.
-		// nextSampleTime = Date.now() + sampleTime
-		
 		st = s.toString()+"s";
-		
-		console.log('sampletate', st)
+		console.log('samplerate', st)
 		message = enc.encode('S'+st+';\r\n')
 		if (outgoingCharacteristic != null) {
 			console.log('sendMessage', st)
@@ -495,26 +496,42 @@
 		setCookie("sampleTimeCookie", st)
 	}
 
-	// called if a sampletime radiobutton is clicked.
-	function setSampleTime(t) {
+	// called if a sampletime is received from client
+	function gotSampleTime(t) {
 		st = t.toString()+"s";
-		console.log('sampleTime' , t, st)
+		console.log('got sampleTime' , t, st)
 		document.getElementById(st).checked=true
 		if (debug) {
-			console.log('sampleTime' , r, st)
+			console.log('sampleTime' , t, st)
 		}
-		//setCookie("sampleTimeCookie", st)
+		setCookie("sampleTimeCookie", st)
 	}
 
-	// Might come back later
-	// called if average tickbox is clicked.
-	//function averageClick() {
-	//	if (debug) {
-	//		console.log('averageClick', avgBox.checked);
-	//	}
-	//	averageSamples =  avgBox.checked;
-	//	setCookie("averageCookie", avgBox.checked);
-	//}
+	// called if a sampletime is received from client
+	function gotFilter(f) {
+		document.getElementById("filterBox").checked = (f == 'True')
+		if (true) {
+			console.log('expFilter' , f)
+		}
+		setCookie("filterCookie", st)
+	}
+
+	// called if exponential filter tickbox is clicked.
+	function filterClick() {
+		if (debug) {
+			console.log('filterClick', fltBox.checked);
+		}
+		if (fltBox.checked) {
+			message = enc.encode('F1;\r\n')
+		} else {
+			message = enc.encode('F0;\r\n')
+		}
+		if (outgoingCharacteristic != null) {
+			console.log('sendMessage filter')
+			outgoingCharacteristic.writeValue(message)		
+		}
+		setCookie("averageCookie", fltBox.checked)
+	}
 
 	// called if explanation tickbox is clicked.
 	function explanationCLick() {
