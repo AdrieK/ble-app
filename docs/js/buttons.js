@@ -11,7 +11,7 @@ var testButton = document.getElementById("test_button");
 // var s1Button = document.getElementById("1s");
 // var s10Button = document.getElementById("10s");
 // var m1Button = document.getElementById("1m");
-var avgBox = document.getElementById("avg");
+var fltBox = document.getElementById("filterBox");
 
 function myFunction() { // just for testing
     connectButton.innerHTML = "aangepast click";
@@ -55,9 +55,10 @@ function saveData() { // data saving - split in gui and data part
     var link = document.getElementById('downloadlink');
     link.style.visibility = 'visible';
     link.href = textFile;
+	//link.click();
 }
 
-function testPressed() {
+function testClicked() {
     console.log('test pressed');
 	debug = !debug;
     const timestamp = new Date().getTime();
@@ -66,7 +67,7 @@ function testPressed() {
 	noLoop(); // p5.js
 }
 
-function debugPressed() {
+function debugClicked() {
     console.log('debug pressed');
 	ck = document.cookie;
 	console.log('ck',ck);
