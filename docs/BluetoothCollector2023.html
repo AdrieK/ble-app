@@ -228,7 +228,7 @@
 		bluetoothDevice = await navigator.bluetooth.requestDevice({
 			// filters: [...] <- Prefer filters to save energy & show relevant devices.
 			acceptAllDevices: false,
-			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: "auto"},],
+			filters: [ {namePrefix: "CIRCUITPY"}, {namePrefix: "Arduino"} , {namePrefix: "MIO"}, {namePrefix: "HMSoft"},],
 			optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e', // circuitpy uart service
 			'19b10000-e8f2-537e-4f6c-d104768a1214', // arduino service
 			'0000ffe0-0000-1000-8000-00805f9b34fb', // HM10 SendReceive (Arduino example)				   
@@ -258,6 +258,11 @@
 		if (server.device.name.startsWith("CIRCUITPY")) {
 			serviceName = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 			characteristicName = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+		}
+
+		if (server.device.name.startsWith("HMSoft")) {
+			serviceName = '0000ffe0-0000-1000-8000-00805f9b34fb';
+			characteristicName = '0000ffe1-0000-1000-8000-00805f9b34fb'
 		}
 
 		if (server.device.name.startsWith("auto")) {
@@ -380,15 +385,15 @@
 		// HM10 Bluetooth module with HM10 SendReceive
 		if (event.target.uuid.startsWith('0000ffe1')) {
 			if (debug) {
-				console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value);
+				//console.log('T:', (Date.now() - timeStarted)/1000, 'value:', event.target.value);
 				//** getInt16 parameter is byte-offset, not index!!!
-				console.log('values:', event.target.value.getInt16(0), ',', event.target.value.getInt16(2), ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
-				console.log('values:', event.target.value.getInt16[0], ',', event.target.value.getInt16[2], ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
+				//console.log('values:', event.target.value.getInt16(0), ',', event.target.value.getInt16(2), ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
+				//console.log('values:', event.target.value.getInt16[0], ',', event.target.value.getInt16[2], ',', event.target.value.getInt16(4), ',', event.target.value.getInt16(6));
 			};
 			s = dec.decode(event.target.value);
-			console.log(s);
-			console.log(s.getInt16(2));
-			myValue = event.target.value.getInt16(4);
+			console.log('value', event.target.value);
+			console.log('s', s);
+			//myValue = event.target.value.getInt16(4);
 		}
 		
 		// TODO: get rid of Mickey Mouse!
