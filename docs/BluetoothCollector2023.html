@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <title>BLE Datacollector and plotter</title>
   <!-- See https://dygraphs.com/download.html , https://www.cdnpkg.com/dygraph -->
   <!--script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js"></script-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css">
   
-  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
 </head>
 
 <body>
@@ -45,23 +45,23 @@
 	<input type="radio" id="0.1s" name="sample_time" onclick="sampleClick(0.1)">
 	<label for="0.1s">0.1s</label>
 	<input type="radio" id="0.2s" name="sample_time" onclick="sampleClick(0.2)">
-	<label for="1s">0.2s</label>
+	<label for="0.2s">0.2s</label>
 	<input type="radio" id="0.5s" name="sample_time" onclick="sampleClick(0.5)">
-	<label for="1s">0.5s</label>
+	<label for="0.5s">0.5s</label>
 	<input type="radio" id="1.0s" name="sample_time" onclick="sampleClick(1)">
-	<label for="1s">1s</label>
+	<label for="1.0s">1s</label>
 	<input type="radio" id="2.0s" name="sample_time" onclick="sampleClick(2)">
-	<label for="1s">2s</label>
-	<input type="radio" id="5.0s" name="sample_time" onclick="sampleClick(5)">
-	<label for="1s">5s</label>
-	<input type="radio" id="10.0s" name="sample_time" onclick="sampleClick(10)">
+	<label for="2.0s">2s</label>
+	<input type="radio" id="5s" name="sample_time" onclick="sampleClick(5)">
+	<label for="5s">5s</label>
+	<input type="radio" id="10s" name="sample_time" onclick="sampleClick(10)">
 	<label for="10s">10s</label>
-	<input type="radio" id="20.0s" name="sample_time" onclick="sampleClick(20)">
-	<label for="10s">20s</label>
+	<input type="radio" id="20s" name="sample_time" onclick="sampleClick(20)">
+	<label for="20s">20s</label>
 	<input type="radio" id="60s" name="sample_time" onclick="sampleClick(60)">
 	<label for="60s">1 min</label>
 	<input type="checkbox" id="filterBox" name="filter" onclick="filterClick()" >
-	<label for="a" title="fixed filterfactor in client">exponential filter</label-->
+	<label for="filterBox" title="fixed filterfactor in client">exponential filter</label>
   </td></tr>
   <tr>
     <td id="deviceID">&nbsp;</td>
@@ -84,7 +84,7 @@
  	<td>19b10000-e8f2-537e-4f6c-d104768a1214 </td>
 	<td><input type="text" id="myService" value="0x181A">(your own service uuid)</td>
 </tr><tr>
-	<th align="left">characteristic<br />receive</th>
+	<th align="left">characteristic<br>receive</th>
 	<td>6e400003-b5a3-f393-e0a9-e50e24dcca9e</td>
 	<td>19b10002-e8f2-537e-4f6c-d104768a1214</td> 
 	<td><input type="text" id="myReceive" value="0x2A6E">(your own rx uuid)</td>
@@ -100,7 +100,7 @@
 <table>
 	<caption style="text-align: left"><input id="explBox" type="checkbox" name="show explanation" onclick="explanationCLick()">
 		Show explanation(uncomplete, work in progress)</caption>
-		<tr style = "visibility: hidden" id="expl"><td colspan="4">
+	<tr style = "visibility:hidden" id="expl"><td>
 	The bluetooth data collector enables to capture data in some predefined formats from some predefined gatt services/characteristics.
 	Default two device types/data streams are recognised: A stream of floating point numbers sent using the Arduino BLE class, service uuid xxxxx, characteristic uuid yyyyy and data sent from a circuitpython device using the ble uart service.
 	using the two text fields you can set your own device, service and characteristic, but not (yet) the type and amount of data.
