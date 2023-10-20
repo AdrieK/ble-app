@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>BLE Button</title>
+  <title>BLE Fourpoint controller</title>
   <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
 </head>
 
@@ -12,17 +12,26 @@
  document.cookie = "aap=test";
 </script> 
 
- <table border="0">
-  <tr><td style="padding:20px">
-    &nbsp;<button style="background-color:green;height:200px;width:200px;border-radius:32px" type= "button" id="on_button" onclick="onButton()">ON</button>
-  </td><td>
-    &nbsp;<button type= "button" id="connect_button" onclick="listBLE()" >connect</button>
-  </td></tr>
-  <tr><td style="padding:20px">
-    &nbsp;<button style="background-color:red;height:200px;width:200px;border-radius:32px" type= "button" id="off_button" onclick="offButton()">OFF</button>
-  </td><td>
+ <table border="1">
   <tr>
+	<td>&nbsp;<button type= "button" id="connect_button" onclick="listBLE()" >connect</button></td>		
+	<td style="padding:20px">
+    	&nbsp;<button style="background-color:green;height:200px;width:200px;border-radius:32px" type= "button" id="on_button" onclick="onButton()">UP</button></td>
+	<td>&nbsp;</td>
+  </tr><tr>
+  	<td style="padding:20px">
+    		&nbsp;<button style="background-color:red;height:200px;width:200px;border-radius:32px" type= "button" id="off_button" onclick="offButton()">LEFT</button>
+  	</td>
+	<td>&nbsp;</td>
+  	<td style="padding:20px">
+    		&nbsp;<button style="background-color:red;height:200px;width:200px;border-radius:32px" type= "button" id="off_button" onclick="offButton()">RIGHT</button>
+  	</td>
+	 
+  </tr><tr>
     <td id="deviceID">&nbsp;</td>
+  	<td style="padding:20px">
+    		&nbsp;<button style="background-color:red;height:200px;width:200px;border-radius:32px" type= "button" id="off_button" onclick="offButton()">RIGHT</button>
+  	</td>
     <td id="serviceID" colspan="3">&nbsp;</td>
 	</tr>
   </table>
