@@ -12,7 +12,13 @@
  document.cookie = "aap=test";
 </script> 
 
- <table border="1">
+<style>
+table, th, td {
+  border: 1px solid;
+}
+</style>
+
+ <table>
   <tr>
 	<td>&nbsp;<button type= "button" id="connect_button" onclick="listBLE()" >connect</button></td>		
 	<td style="padding:20px">
