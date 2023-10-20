@@ -81,8 +81,11 @@ table, th, td {
 	var btnStop = document.getElementById("stop_button");
 	var btnConnect = document.getElementById("connect_button");
 	var onOffState = false;
-	btnOn.disabled = true;
-	btnOff.disabled = true;
+	btnUp.disabled = true;
+	btnDown.disabled = true;
+	btnLeft.disabled = true;
+	btnRight.disabled = true;
+	btnStop.disabled = true;
 	console.log('end variables');
 	
 	async function listBLE() {
@@ -178,7 +181,7 @@ table, th, td {
 		}
 		
 		btnConnect.disabled=false;
-		btnOn.disabled=false;
+		btnUp.disabled=false;
 
 
 	}
