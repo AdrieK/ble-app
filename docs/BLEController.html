@@ -249,7 +249,7 @@ table, th, td {
 
 	function btnClicked(id) {
 		if (1) console.log('Button clicked', id)
-		btn = document.getElementById("id")
+		btn = document.getElementById(id)
 		btn.innerHTML = "ON"
 		btn.style.backgroundColor = "green"
 		sendToBLE("M1;")
