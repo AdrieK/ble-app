@@ -257,31 +257,12 @@ table, th, td {
 
 	function btnClicked(id) {
 		if (1) console.log('Button clicked', id)
-		btn = document.getElementById(id)
-		btn.innerHTML = "ON"
-		btn.style.backgroundColor = "green"
+		//btn = document.getElementById(id)
+		//btn.innerHTML = "ON"
+		//btn.style.backgroundColor = "green"
 		sendToBLE("M" + id + ";")
 	}
 
-	function onButton() {
-		if (debug) console.log('ON Button clicked');
-		onOffState = true; // true is on...
-		btnOn.disabled = true;
-		btnOff.disabled = false; 
-		cell = document.getElementById("deviceID");
-		cell.innerHTML = "Current state = ON";
-		cell.style.backgroundColor = "green";
-	}
-
-	function offButton() {
-		if (debug) console.log('OFF Button clicked');
-		onOffState = false; // false is off...
-		btnOn.disabled = false; 
-		btnOff.disabled = true; 	
-		cell = document.getElementById("deviceID");
-		cell.innerHTML = "Current state = OFF";
-		cell.style.backgroundColor = "red";
-	}
 	
 	function sendToBLE(string) { 
 		if (debug) console.log('sendBLE:', string)
