@@ -275,11 +275,16 @@ table, th, td {
 		cell.style.backgroundColor = "red";
 	}
 	
-
-    function showData() { 
+	function sendBLE(string) { 
+		if (debug) console.log('sendBLE:', string)
+		message = enc.encode(string);
+		outgoingCharacteristic.writeValue(message);
+	}
+	
+	function showData() { 
 		if (debug) console.log('showData');
 		//document.getElementById("valueID").innerHTML = "value: " + myValue + "<br>#points: " + points.length;
-    }
+	}
 
 	
 
