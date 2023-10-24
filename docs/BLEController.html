@@ -275,7 +275,7 @@ table, th, td {
 		cell.style.backgroundColor = "red";
 	}
 	
-	function sendBLE(string) { 
+	function sendToBLE(string) { 
 		if (debug) console.log('sendBLE:', string)
 		message = enc.encode(string);
 		outgoingCharacteristic.writeValue(message);
