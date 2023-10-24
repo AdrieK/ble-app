@@ -247,6 +247,13 @@ table, th, td {
 	}
 /// End of async / BLE functions
 
+	function buttonClicked(env) {
+		if (1) console.log('Button clicked', env);
+		cell = document.getElementById("deviceID");
+		cell.innerHTML = "Current state = ON";
+		cell.style.backgroundColor = "green";
+	}
+
 	function onButton() {
 		if (debug) console.log('ON Button clicked');
 		onOffState = true; // true is on...
