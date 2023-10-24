@@ -25,24 +25,29 @@ table, th, td {
   </tr><tr>
 	<td>&nbsp;<button>upleft</button></td>
 	<td style="padding:20px">
-    	&nbsp;<button style="background-color:DarkRed;height:100px;width:100px;border-radius:32px" type= "button" id="up_button" onclick="btnClicked(this.id)">UP</button></td>
+    	&nbsp;<button style="background-color:DarkRed;height:100px;width:100px;border-radius:32px" type= "button" id="up_button" 
+		      onclick="btnClicked(1)">UP</button></td>
 	<td>&nbsp;<button>upright</button></td>
   </tr><tr>
   	<td style="padding:20px">
-    		&nbsp;<button style="background-color:DarkOrange;height:100px;width:100px;border-radius:32px" type= "button" id="left_button" onclick="leftButton()">LEFT</button>
+    		&nbsp;<button style="background-color:DarkOrange;height:100px;width:100px;border-radius:32px" type= "button" id="left_button" 
+			      onclick="btnClicked(2)">LEFT</button>
   	</td>
 	<td style="padding:20px">
-    		&nbsp;<button style="background-color:red;height:100px;width:100px;border-radius:32px" type= "button" id="stop_button" onclick="stopButton()">STOP</button>
+    		&nbsp;<button style="background-color:red;height:100px;width:100px;border-radius:32px" type= "button" id="stop_button" 
+			      onclick="btnClicked(0)">STOP</button>
 	</td>
   	<td style="padding:20px">
-    		&nbsp;<button style="background-color:DarkMagenta;height:100px;width:100px;border-radius:32px" type= "button" id="right_button" onclick="rightButton()">RIGHT</button>
+    		&nbsp;<button style="background-color:DarkMagenta;height:100px;width:100px;border-radius:32px" type= "button" id="right_button" 
+			      nclick="btnClicked(3)">RIGHT</button>
   	</td>
 	 
   </tr><tr>
     <td id="deviceID">&nbsp;</td>
   	<td style="padding:20px">
     		&nbsp;
-		<button style="background-color:DarkGreen;height:100px;width:100px;border-radius:32px" type= "button" id="down_button" onclick="downButton()">DOWN</button>
+		<button style="background-color:DarkGreen;height:100px;width:100px;border-radius:32px" type= "button" id="down_button" 
+			onclick="btnClicked(4)">DOWN</button>
   	</td>
 	<td>&nbsp;</td>
 	</tr><tr>
@@ -252,7 +257,7 @@ table, th, td {
 		btn = document.getElementById(id)
 		btn.innerHTML = "ON"
 		btn.style.backgroundColor = "green"
-		sendToBLE("M1;")
+		sendToBLE("M" + id + ";")
 	}
 
 	function onButton() {
