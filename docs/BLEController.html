@@ -225,14 +225,20 @@ table, th, td {
 			var cnt
 			if (incoming.indexOf('\r\n')>0) {
 				p = incoming.split('\r\n')[0];
-				q = p.split('=');
-				r = q[1];
-				myValue = parseFloat(r);
-
-				if (debug) {
-					console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
+				comm = incoming.substring(0,1);
+				console.log('p', p, 'comm', comm);
+				if (comm == 'B') {
+					volt = incomming.substring(1, incoming.indexOf(';'))
+					console.log('volt', volt);
+				else {
+					q = p.split('=');
+					r = q[1];
+					myValue = parseFloat(r);
+	
+					if (debug) {
+						console.log('T:', (Date.now() - timeStarted)/1000, 'TS:', event.timeStamp, 'myValue:', myValue);
+					}
 				}
-				
 				
 				// keep the rest of the data for later processing.
 				pos=incoming.indexOf('\r\n')+2;
