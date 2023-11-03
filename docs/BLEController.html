@@ -79,6 +79,7 @@ table, th, td {
 	var bluetoothDevice;
 	var incomingCharacteristic;
 
+	// These may not be needed at all?
 	var btnLeft = document.getElementById("left_button");
 	var btnRight = document.getElementById("right_button");
 	var btnUp = document.getElementById("up_button");
@@ -114,6 +115,7 @@ table, th, td {
 		btnDown.disabled = false;
 		btnLeft.disabled = false;
 		btnRight.disabled = false;
+		btnStop.disabled = false;
 		btnConnect.disabled = true;
 		console.log("end of listBLE");
 	}
