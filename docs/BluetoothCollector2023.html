@@ -371,13 +371,14 @@
 
 		// Arduino uint32 type, receives an uint32 type.
 		if (event.target.uuid.startsWith('19b10002')) {
-			myValue = event.target.value.getUint32(0)/100;
+			myValue = event.target.value.getUint32(0)
 			// if one of the highest 4 bits are set, this is (probably) a channel number encoded in the highest 4 bits
-			if ((myValue >> 20) > 8) { 
-				myNum = myValue>>20 - 8 // (highest bit is always 1, indicating channel number)
+			if ((event.target.value.getUint32(0) >> 20) > 8) { 
+				myNum = (myValue>>20) - 8 // (highest bit is always 1, indicating channel number)
 				myValues[muNum] = myValue & 0xF00000
 				console.log('myNum:', myNum, ' value:', myValues[myNum])
 			} else { // the traditional way...
+				myValue /= 100;
 				plotDataArr([myValue]);
 				storeDataArr([myValue]);
 				showDataArr([myValue]);
