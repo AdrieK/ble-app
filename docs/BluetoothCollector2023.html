@@ -375,10 +375,10 @@
 			// highest bit is set, this is (probably) a channel number encoded in the highest 4 bits
 			if (event.target.value.getUint32(0) & 0x800000) { 
 				myNum = (myValue>>20) - 8 // (highest bit is always 1, indicating channel number)
-				myValues[myNum] = (myValue & 0xF00000) / 100
+				myValues[myNum] = (myValue & 0x0FFFFF) / 100
 				console.log('myNum:', myNum, ' value:', myValues[myNum])
 			} else { // the traditional way...
-				myValue /= 100;
+				myValue = (myValue & 0x0FFFFF) / 100
 				plotDataArr([myValue]);
 				storeDataArr([myValue]);
 				showDataArr([myValue]);
