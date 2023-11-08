@@ -117,7 +117,7 @@
     stID = getCookie("sampleTimeCookie");  
 	if ( stID != "" ) {
 		rb = document.getElementById(stID);
-		rb.checked = true;
+		if (rb) rb.checked = true;
 		sampleTime = parseInt(stID);		
 	}
 
