@@ -53,7 +53,9 @@ table, th, td {
 	</tr><tr>
 		<td id="patterns">
 			<button type= "button" id="sine_button" onclick="patternClicked(1)">SINE</button>
-			<button type= "button" id="triangle_button" onclick="patternClicked(2)">TRIANGLE</button>
+			<button type= "button" id="sine2D_button" onclick="patternClicked(2)">SINE</button>
+			<button type= "button" id="triangle_button" onclick="patternClicked(3)">TRIANGLE</button>
+			<button type= "button" id="triangle2D_button" onclick="patternClicked(4)">TRIANGLE</button>
 		</td>			
 	</tr><tr>
     <td id="serviceID" colspan="3">&nbsp;➫</td>		
@@ -272,11 +274,20 @@ table, th, td {
 /// End of async / BLE functions
 
 	function btnClicked(id) {
-		if (1) console.log('Button clicked', id)
+		if (debug) console.log('Button clicked', id)
 		//btn = document.getElementById(id)
 		//btn.innerHTML = "ON"
 		//btn.style.backgroundColor = "green"
 		sendToBLE("M" + id + ";")
+	}
+
+	
+	function patternClicked(id) {
+		if (1) console.log('Button clicked', id)
+		//btn = document.getElementById(id)
+		//btn.innerHTML = "ON"
+		//btn.style.backgroundColor = "green"
+		sendToBLE("P" + id + ";")
 	}
 
 	
