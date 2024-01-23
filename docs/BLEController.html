@@ -53,10 +53,20 @@ table, th, td {
 	</tr><tr>
 		<td id="patterns">
 			<button type= "button" id="sine_button" onclick="patternClicked(1)">SINE</button>
-			<button type= "button" id="sine2D_button" onclick="patternClicked(2)">SINE</button>
+			<button type= "button" id="sine2D_button" onclick="patternClicked(2)">SINE 2D</button><BR />
 			<button type= "button" id="triangle_button" onclick="patternClicked(3)">TRIANGLE</button>
-			<button type= "button" id="triangle2D_button" onclick="patternClicked(4)">TRIANGLE</button>
-		</td>			
+			<button type= "button" id="triangle2D_button" onclick="patternClicked(4)">TRIANGLE 2D</button>
+		</td>
+		<td>
+			<form action="/action_page.php">
+		  <label for="Xtime">Cycletime X:</label>
+		  <input type="text" id="Xtime" name="Xtime"><br><br>
+		  <label for="Ytime">cycleTime Y:</label>
+		  <input type="text" id="Ytime" name="Ytime"><br><br>
+		  <input type="submit" value="Submit">
+		</form>
+		</td>
+		<td>&nbsp;</td>
 	</tr><tr>
     <td id="serviceID" colspan="3">&nbsp;➫</td>		
 	</tr>
