@@ -51,17 +51,15 @@ table, th, td {
   	</td>
 	<td>&nbsp;</td>
 	</tr><tr>
-		<td id="patterns">
-			<button type= "button" id="sine_button" onclick="patternClicked(1)">SINE</button>
-			<button type= "button" id="sine2D_button" onclick="patternClicked(2)">SINE 2D</button><BR />
-			<button type= "button" id="triangle_button" onclick="patternClicked(3)">TRIANGLE</button>
-			<button type= "button" id="triangle2D_button" onclick="patternClicked(4)">TRIANGLE 2D</button>
-		</td>
-		<td>
-			Cyletime X: <input type="text" id="myText" value="10"><br />
+		<td colspan = "3">
+			Cyletime X: <input type="text" id="myText" value="10">
+			Pattern: <button type= "button" onclick="patternClicked(1)">SINE</button>
+				<button type= "button" onclick="patternClicked(2)">TRIANGLE</button>
+			<br />
 			Cyletime Y: <input type="text" id="myText" value="10">
+			Pattern: <button type= "button" onclick="patternClicked(3)">SINE</button>
+				<button type= "button" onclick="patternClicked(4)">TRIANGLE</button>
 		</td>
-		<td>&nbsp;</td>
 	</tr><tr>
     <td id="serviceID" colspan="3">&nbsp;➫</td>		
 	</tr>
