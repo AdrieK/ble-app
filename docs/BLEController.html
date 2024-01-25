@@ -53,12 +53,12 @@ table, th, td {
 	</tr><tr>
 		<td colspan = "3">
 			X Cycletime: <input type="text" size="4" id="xtime" value="10">
-			Pattern: <button type= "button" onclick="xPatternClicked('X;S')">SINE</button>
-				<button type= "button" onclick="xPatternClicked('X;T')">TRIANGLE</button>
+			Pattern: <button type= "button" onclick="xPatternClicked('S')">SINE</button>
+				<button type= "button" onclick="xPatternClicked('T')">TRIANGLE</button>
 			<br>
 			Y Cycletime: <input type="text" size="4" id="ytime" value="10">
-			Pattern: <button type= "button" onclick="yPatternClicked('Y;S')">SINE</button>
-				<button type= "button" onclick="yPatternClicked('Y;S')">TRIANGLE</button>
+			Pattern: <button type= "button" onclick="yPatternClicked('S')">SINE</button>
+				<button type= "button" onclick="yPatternClicked('T')">TRIANGLE</button>
 		</td>
 	</tr><tr>
     <td id="serviceID" colspan="3">&nbsp;➫</td>		
@@ -286,20 +286,15 @@ table, th, td {
 
 	
 	function xPatternClicked(p) {
-		if (1) console.log('PatternButton clicked', p)
+		if (1) console.log('xPatternButton clicked', p)
 		v = document.getElementById('xtime').value
-		console.log(v.innerHTML)
-		s = p.substring(1,1)
-		sendToBLE("X;" + p.substring(1,1) + v + ';')
+		sendToBLE("X" + p.substring(0,1) + v + ';')
 	}
 
 	function yPatternClicked(p) {
-		if (1) console.log('PatternButton clicked', p)
-		if (substr(p,1)) 
-		//btn = document.getElementById(id)
-		//btn.innerHTML = "ON"
-		//btn.style.backgroundColor = "green"
-		sendToBLE("X" + p + ";")
+		if (1) console.log('yPatternButton clicked', p)
+		v = document.getElementById('ytime').value
+		sendToBLE("Y" + p.substring(0,1) + v + ';')
 	}
 
 	
