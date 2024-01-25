@@ -287,10 +287,10 @@ table, th, td {
 	
 	function xPatternClicked(p) {
 		if (1) console.log('PatternButton clicked', p)
-		v = document.getElementById('xtime')
+		v = document.getElementById('xtime').value
 		console.log(v.innerHTML)
-		s = p.substring(0,1)
-		sendToBLE("X;" + p.substring(0,1) + ";")
+		s = p.substring(1,1)
+		sendToBLE("X;" + p.substring(1,1) + v + ';')
 	}
 
 	function yPatternClicked(p) {
