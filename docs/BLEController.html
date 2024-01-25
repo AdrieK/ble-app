@@ -30,7 +30,7 @@ table, th, td {
 	<td>&nbsp;<button>upright</button></td>
   </tr><tr>
   	<td style="padding:20px">
-    		&nbsp;<button style="background-color:DarkOrange;height:100px;width:100px;border-radius:32px" type= "button" id="left_button" 
+    		&nbsp;<button style="background-color:DarkOrange;height:100px;widt/h:100px;border-radius:32px" type= "button" id="left_button" 
 			      onclick="btnClicked(2)">LEFT</button>
   	</td>
 	<td style="padding:20px">
@@ -53,12 +53,12 @@ table, th, td {
 	</tr><tr>
 		<td colspan = "3">
 			X Cycletime: <input type="text" size="4" id="xtime" value="10">
-			Pattern: <button type= "button" onclick="patternClicked(1)">SINE</button>
-				<button type= "button" onclick="patternClicked(2)">TRIANGLE</button>
+			Pattern: <button type= "button" onclick="patternClicked('XS')">SINE</button>
+				<button type= "button" onclick="patternClicked('XT')">TRIANGLE</button>
 			<br>
 			Y Cycletime: <input type="text" size="4" id="ytime" value="10">
-			Pattern: <button type= "button" onclick="patternClicked(3)">SINE</button>
-				<button type= "button" onclick="patternClicked(4)">TRIANGLE</button>
+			Pattern: <button type= "button" onclick="patternClicked('YS')">SINE</button>
+				<button type= "button" onclick="patternClicked('YS')">TRIANGLE</button>
 		</td>
 	</tr><tr>
     <td id="serviceID" colspan="3">&nbsp;➫</td>		
@@ -285,12 +285,12 @@ table, th, td {
 	}
 
 	
-	function patternClicked(id) {
-		if (1) console.log('Button clicked', id)
+	function patternClicked(p) {
+		if (1) console.log('PatternButton clicked', p)
 		//btn = document.getElementById(id)
 		//btn.innerHTML = "ON"
 		//btn.style.backgroundColor = "green"
-		sendToBLE("P" + id + ";")
+		sendToBLE("X" + id + ";")
 	}
 
 	
