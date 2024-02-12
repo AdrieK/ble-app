@@ -14,7 +14,7 @@
 
 <style>
 table, th, td {
-  border: 1px solid black;
+  border: none;
 }
 </style>
 
@@ -131,7 +131,7 @@ table, th, td {
 		console.log('server:', server.device.name);
 
 		let serviceName = 'unknown';
-		document.getElementById("deviceID").innerHTML = server.device.name;
+		// document.getElementById("deviceID").innerHTML = server.device.name;
 
 		if (server.device.name.startsWith("Arduino")) {
 			serviceName = '19b10000-e8f2-537e-4f6c-d104768a1214';
@@ -144,7 +144,7 @@ table, th, td {
 		}
 
 		console.log('Getting Service...', serviceName);
-		document.getElementById("serviceID").innerHTML = serviceName+"<br>"+characteristicName;
+		// document.getElementById("serviceID").innerHTML = serviceName+"<br>"+characteristicName;
 
 		const service = await server.getPrimaryService(serviceName);
 
